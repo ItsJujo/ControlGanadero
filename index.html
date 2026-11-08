@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Control Ganadero</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bitter:wght@600;700&family=Source+Sans+3:wght@400;500;600&display=swap">
+<style>
+/* Concepto: libreta de campo digital. Lista de animales a la izquierda, ficha con formulario e historial a la derecha. */
+:root{
+  --bg:#edf1ec; --surface:#ffffff; --ink:#1b2a22; --muted:#5d6e63; --line:#d3dcd4;
+  --accent:#1f5a3f; --accent-ink:#ffffff; --accent-soft:#dcebe2;
+  --warn:#9a5b00; --warn-soft:#fbeed3; --bad:#a3262a; --bad-soft:#f8dfe0; --ok:#1f6b3a;
+  --font-display:'Bitter',Georgia,serif; --font-body:'Source Sans 3',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121a15; --surface:#1b261f; --ink:#e6eee8; --muted:#97a99d; --line:#2e3d33;
+  --accent:#6fc08f; --accent-ink:#0e1d14; --accent-soft:#23382b;
+  --warn:#e2b25c; --warn-soft:#3a2f17; --bad:#f08c8f; --bad-soft:#3d2022; --ok:#7fd29b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121a15; --surface:#1b261f; --ink:#e6eee8; --muted:#97a99d; --line:#2e3d33;
+  --accent:#6fc08f; --accent-ink:#0e1d14; --accent-soft:#23382b;
+  --warn:#e2b25c; --warn-soft:#3a2f17; --bad:#f08c8f; --bad-soft:#3d2022; --ok:#7fd29b; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.45;
+  padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{font-family:var(--font-display);margin:0;text-wrap:balance;line-height:1.15}
+h1{font-size:1.7rem} h2{font-size:1.3rem} h3{font-size:1.05rem}
+.top{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:flex-end;justify-content:space-between}
+.top p{margin:4px 0 0;color:var(--muted)}
+.stats{display:flex;gap:10px;flex-wrap:wrap}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 14px;min-width:110px}
+.stat b{display:block;font-family:var(--font-display);font-size:1.4rem;font-variant-numeric:tabular-nums}
+.stat span{font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.layout{display:grid;grid-template-columns:320px minmax(0,1fr);gap:18px;align-items:start}
+@media(max-width:820px){.layout{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:14px;min-width:0}
+label{font-size:.85rem;font-weight:600;display:flex;flex-direction:column;gap:5px;min-width:0}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:9px 10px;width:100%;min-width:0}
+textarea{resize:vertical;min-height:64px}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,.animal:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+.bad{border-color:var(--bad)!important;background:var(--bad-soft)}
+button{font:inherit;font-weight:600;border-radius:6px;padding:9px 14px;cursor:pointer;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink)}
+button.ghost{background:transparent;color:var(--accent)}
+button.danger{background:transparent;color:var(--bad);border-color:var(--bad)}
+button:disabled{opacity:.5;cursor:default}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media(max-width:520px){.row,.row3{grid-template-columns:minmax(0,1fr)}}
+.hint{font-size:.82rem;color:var(--muted);margin:0}
+.msg{font-size:.9rem;border-radius:6px;padding:8px 10px;background:var(--bad-soft);color:var(--bad)}
+.msg.ok{background:var(--accent-soft);color:var(--ok)}
+.list{display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto}
+.animal{display:flex;justify-content:space-between;gap:8px;align-items:center;text-align:left;width:100%;
+  background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-weight:500}
+.animal[aria-current="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.animal small{color:var(--muted);font-weight:400;display:block}
+.pill{font-size:.72rem;padding:2px 8px;border-radius:99px;background:var(--warn-soft);color:var(--warn);white-space:nowrap}
+.pill.ok{background:var(--accent-soft);color:var(--ok)}
+.head{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center}
+.last{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.last div{background:var(--bg);border-radius:8px;padding:8px 10px;min-width:0}
+.last span{display:block;font-size:.74rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.last b{font-weight:600;overflow-wrap:anywhere}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:.92rem}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+td.n{font-variant-numeric:tabular-nums;white-space:nowrap}
+.empty{text-align:center;color:var(--muted);padding:28px 8px}
+svg text{fill:var(--muted);font-size:11px;font-family:var(--font-body)}
+.chart line.g{stroke:var(--line)} .chart path{stroke:var(--accent);fill:none;stroke-width:2.5} .chart circle{fill:var(--accent)}
+.store{font-size:.78rem;color:var(--muted)}
+.userbox{display:flex;gap:10px;align-items:center;font-size:.9rem;color:var(--muted)}
+.userbox b{color:var(--ink)}
+.authwrap{min-height:70vh;display:flex;align-items:center;justify-content:center}
+.authcard{width:100%;max-width:420px;gap:16px}
+.authcard form{display:flex;flex-direction:column;gap:12px}
+.tabs{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.tab{border:0;border-radius:0;background:var(--bg);color:var(--muted);padding:10px}
+.tab[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+label.chk{flex-direction:row;align-items:center;gap:8px;font-weight:500}
+label.chk input{width:auto}
+
+html{color-scheme:light}body{margin:0}[hidden]{display:none!important}
+</style>
+</head>
+<body>
+
+
+<div id="auth" class="authwrap" hidden>
+  <div class="panel authcard">
+    <div>
+      <h1>Control Ganadero</h1>
+      <p class="hint" style="margin-top:6px">Ingresa para ver y registrar los animales del proyecto.</p>
+    </div>
+    <div class="tabs">
+      <button type="button" class="tab" id="tabIn" aria-selected="true">Iniciar sesión</button>
+      <button type="button" class="tab" id="tabUp" aria-selected="false">Crear cuenta</button>
+    </div>
+    <form id="authForm" novalidate>
+      <label id="nombreRow" for="nombre" hidden>Nombre completo<input id="nombre" autocomplete="name"></label>
+      <label for="usuario">Correo electrónico<input id="usuario" type="email" autocomplete="email" autocapitalize="none" placeholder="tucorreo@ejemplo.com"></label>
+      <label for="clave">Contraseña<input id="clave" type="password" autocomplete="current-password"></label>
+      <label id="clave2Row" for="clave2" hidden>Confirmar contraseña<input id="clave2" type="password" autocomplete="new-password"></label>
+      <label class="chk" for="recordar"><input id="recordar" type="checkbox"> Mantener la sesión iniciada en este dispositivo</label>
+      <div id="authMsg" role="alert" hidden></div>
+      <button type="submit" id="authBtn">Entrar</button>
+      <button type="button" class="ghost" id="resetBtn">¿Olvidaste tu contraseña?</button>
+    </form>
+    <p class="hint" id="authHint">Contraseña de mínimo 6 caracteres. Cada cuenta ve solo sus propios animales.</p>
+  </div>
+</div>
+
+<div class="wrap" id="app" hidden>
+  <header class="top">
+    <div>
+      <h1>Control Ganadero</h1>
+      <p>Peso, vitaminas, raza, edad, vacunas y descorne de cada animal, con su fecha.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;align-items:flex-end">
+      <div class="userbox">Sesión de <b id="who"></b> <button type="button" class="ghost" id="logoutBtn">Cerrar sesión</button></div>
+      <div class="stats" id="stats"></div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="panel">
+      <h2>Animales</h2>
+      <form id="addForm" novalidate style="display:flex;flex-direction:column;gap:10px">
+        <div class="row">
+          <label for="prefijo">Nombre o prefijo<input id="prefijo" placeholder="Ej. Vaca" autocomplete="off"></label>
+          <label for="cantidad">Cantidad<input id="cantidad" type="number" min="1" max="200" value="1" inputmode="numeric"></label>
+        </div>
+        <button type="submit" id="addBtn">Agregar animales</button>
+        <p class="hint">Con cantidad mayor a 1 se numeran solos: Vaca-001, Vaca-002...</p>
+        <div id="addMsg" role="status" hidden></div>
+      </form>
+      <label for="buscar">Buscar<input id="buscar" type="search" placeholder="Nombre o raza"></label>
+      <div class="list" id="lista"></div>
+      <div class="store" id="store"></div>
+    </aside>
+
+    <main class="panel" id="ficha"></main>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, sendPasswordResetEmail, setPersistence, browserLocalPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const firebaseConfig = {
+  apiKey: "AIzaSyANvbtx7QTxvM6Hw0OvJEg_cOH-ntU5224",
+  authDomain: "control-ganadero-24a5b.firebaseapp.com",
+  projectId: "control-ganadero-24a5b",
+  storageBucket: "control-ganadero-24a5b.firebasestorage.app",
+  messagingSenderId: "142702650881",
+  appId: "1:142702650881:web:00e6069aace7224eca8200"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const dbf = getFirestore(app);
+
+(function(){
+  var $ = function(id){return document.getElementById(id)};
+  var state = {animals:[], sel:null, q:'', loaded:false};
+  var mode = 'db', uid = null, unsub = null, regMode = false;
+
+  function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  function today(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+  function fmtDate(s){if(!s)return '';var p=s.split('-');return p[2]+'/'+p[1]+'/'+p[0]}
+  function sorted(a){return (a.registros||[]).slice().sort(function(x,y){return x.fecha<y.fecha?1:x.fecha>y.fecha?-1:(y.creado||0)-(x.creado||0)})}
+  function uid(){return 'a'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+  function byName(a,b){return a.nombre.localeCompare(b.nombre,'es',{numeric:true})}
+
+  /* ---------- Almacenamiento (Firestore, por cuenta) ---------- */
+  function saveAnimal(a){return setDoc(doc(dbf,'usuarios',uid,'animales',a.id),a)}
+  function removeAnimal(id){return deleteDoc(doc(dbf,'usuarios',uid,'animales',id))}
+
+  /* ---------- Vistas ---------- */
+  function renderStats(){
+    var n=state.animals.length, pesos=[], sin=0;
+    state.animals.forEach(function(a){var r=sorted(a)[0];if(r)pesos.push(r.peso);else sin++});
+    var prom=pesos.length?(pesos.reduce(function(s,x){return s+x},0)/pesos.length):0;
+    $('stats').innerHTML='<div class="stat"><b>'+n+'</b><span>Animales</span></div>'+
+      '<div class="stat"><b>'+(pesos.length?prom.toFixed(1)+' kg':'-')+'</b><span>Peso promedio</span></div>'+
+      '<div class="stat"><b>'+sin+'</b><span>Sin registros</span></div>';
+  }
+
+  function renderList(){
+    var q=state.q.trim().toLowerCase();
+    var items=state.animals.slice().sort(byName).filter(function(a){
+      if(!q)return true;var r=sorted(a)[0];
+      return a.nombre.toLowerCase().indexOf(q)>=0||(r&&r.raza.toLowerCase().indexOf(q)>=0)});
+    if(!items.length){$('lista').innerHTML='<div class="empty">'+(state.animals.length?'Ningún animal coincide con la búsqueda.':(state.loaded?'Aún no hay animales. Indica un nombre y una cantidad, y pulsa Agregar animales.':'Cargando...'))+'</div>';return}
+    $('lista').innerHTML=items.map(function(a){
+      var r=sorted(a)[0];
+      return '<button type="button" class="animal" data-id="'+esc(a.id)+'" aria-current="'+(a.id===state.sel)+'">'+
+        '<span>'+esc(a.nombre)+'<small>'+(r?esc(r.raza)+' · '+r.peso+' kg':'Sin registros')+'</small></span>'+
+        '<span class="pill '+(r?'ok':'')+'">'+(r?fmtDate(r.fecha):'Pendiente')+'</span></button>';
+    }).join('');
+  }
+
+  function chart(regs){
+    var pts=regs.slice().reverse(); if(pts.length<2)return '';
+    var W=600,H=170,pl=40,pr=14,pt=14,pb=26;
+    var min=Math.min.apply(null,pts.map(function(r){return r.peso})), max=Math.max.apply(null,pts.map(function(r){return r.peso}));
+    if(min===max){min-=1;max+=1}
+    var pad=(max-min)*0.15;min-=pad;max+=pad;
+    var x=function(i){return pl+i*(W-pl-pr)/(pts.length-1)}, y=function(v){return pt+(1-(v-min)/(max-min))*(H-pt-pb)};
+    var d=pts.map(function(r,i){return (i?'L':'M')+x(i).toFixed(1)+' '+y(r.peso).toFixed(1)}).join(' ');
+    var grid=[0,.5,1].map(function(t){var v=min+(max-min)*t,yy=y(v);return '<line class="g" x1="'+pl+'" x2="'+(W-pr)+'" y1="'+yy+'" y2="'+yy+'"/><text x="'+(pl-6)+'" y="'+(yy+4)+'" text-anchor="end">'+v.toFixed(0)+'</text>'}).join('');
+    var dots=pts.map(function(r,i){return '<circle cx="'+x(i)+'" cy="'+y(r.peso)+'" r="3.5"/>'}).join('');
+    var lab='<text x="'+pl+'" y="'+(H-6)+'">'+fmtDate(pts[0].fecha)+'</text><text x="'+(W-pr)+'" y="'+(H-6)+'" text-anchor="end">'+fmtDate(pts[pts.length-1].fecha)+'</text>';
+    return '<div><h3>Evolución del peso (kg)</h3><svg class="chart" viewBox="0 0 '+W+' '+H+'" width="100%" role="img" aria-label="Gráfica del peso en el tiempo">'+grid+'<path d="'+d+'"/>'+dots+lab+'</svg></div>';
+  }
+
+  function renderFicha(){
+    var a=state.animals.find(function(x){return x.id===state.sel});
+    var f=$('ficha');
+    if(!a){f.innerHTML='<div class="empty"><h2>Selecciona un animal</h2><p>Aquí verás su ficha, el historial de registros y el formulario para agregar uno nuevo.</p></div>';return}
+    var regs=sorted(a), last=regs[0];
+    var prevForm=document.getElementById('regForm');
+    var keep={};
+    if(prevForm&&prevForm.dataset.id===a.id){['fecha','peso','edad','raza','vitaminas','vacunas','descorne'].forEach(function(k){keep[k]=prevForm.elements[k].value})}
+    var v=function(k,def){return keep[k]!==undefined&&keep[k]!==''?keep[k]:def};
+    var html='<div class="head"><div><h2>'+esc(a.nombre)+'</h2><p class="hint">'+regs.length+' registro'+(regs.length===1?'':'s')+'</p></div>'+
+      '<div id="delArea"><button type="button" class="danger" id="delBtn">Eliminar animal</button></div></div>';
+    if(last){html+='<div class="last"><div><span>Último registro</span><b>'+fmtDate(last.fecha)+'</b></div><div><span>Peso</span><b>'+last.peso+' kg</b></div><div><span>Edad</span><b>'+last.edad+' meses</b></div><div><span>Raza</span><b>'+esc(last.raza)+'</b></div><div><span>Descorne</span><b>'+esc(last.descorne)+'</b></div></div>'}
+    html+='<form id="regForm" data-id="'+esc(a.id)+'" novalidate style="display:flex;flex-direction:column;gap:12px">'+
+      '<h3>Nuevo registro</h3><p class="hint">Todos los campos son obligatorios para guardar una fecha.</p>'+
+      '<div class="row3"><label for="fecha">Fecha<input id="fecha" name="fecha" type="date" max="'+today()+'" value="'+v('fecha',today())+'"></label>'+
+      '<label for="peso">Peso (kg)<input id="peso" name="peso" type="number" min="1" max="2000" step="0.1" inputmode="decimal" value="'+esc(v('peso',''))+'"></label>'+
+      '<label for="edad">Edad (meses)<input id="edad" name="edad" type="number" min="0" max="400" step="1" inputmode="numeric" value="'+esc(v('edad',''))+'"></label></div>'+
+      '<div class="row"><label for="raza">Raza<input id="raza" name="raza" placeholder="Ej. Brahman, Holstein" value="'+esc(v('raza',last?last.raza:''))+'"></label>'+
+      '<label for="descorne">Descorne<select id="descorne" name="descorne"><option value="">Elegir...</option><option'+(v('descorne','')==='Realizado'?' selected':'')+'>Realizado</option><option'+(v('descorne','')==='No realizado'?' selected':'')+'>No realizado</option></select></label></div>'+
+      '<div class="row"><label for="vitaminas">Vitaminas suministradas<textarea id="vitaminas" name="vitaminas" placeholder="Producto y dosis">'+esc(v('vitaminas',''))+'</textarea></label>'+
+      '<label for="vacunas">Vacunas<textarea id="vacunas" name="vacunas" placeholder="Ej. Aftosa, brucelosis">'+esc(v('vacunas',''))+'</textarea></label></div>'+
+      '<div id="regMsg" role="alert" hidden></div><div><button type="submit">Guardar registro</button></div></form>'+
+      chart(regs)+
+      '<div><h3>Historial</h3>'+(regs.length?'<div class="tablewrap"><table><thead><tr><th>Fecha</th><th>Peso</th><th>Edad</th><th>Raza</th><th>Vitaminas</th><th>Vacunas</th><th>Descorne</th></tr></thead><tbody>'+
+      regs.map(function(r){return '<tr><td class="n">'+fmtDate(r.fecha)+'</td><td class="n">'+r.peso+' kg</td><td class="n">'+r.edad+' m</td><td>'+esc(r.raza)+'</td><td>'+esc(r.vitaminas)+'</td><td>'+esc(r.vacunas)+'</td><td>'+esc(r.descorne)+'</td></tr>'}).join('')+
+      '</tbody></table></div>':'<div class="empty">Este animal todavía no tiene registros.</div>')+'</div>';
+    f.innerHTML=html;
+  }
+
+  function render(){renderStats();renderList();renderFicha();
+    $('store').textContent = 'Datos guardados en tu cuenta.';}
+
+  /* ---------- Eventos ---------- */
+  $('buscar').addEventListener('input',function(e){state.q=e.target.value;renderList()});
+  $('lista').addEventListener('click',function(e){var b=e.target.closest('.animal');if(!b)return;state.sel=b.dataset.id;render()});
+
+  $('addForm').addEventListener('submit',function(e){
+    e.preventDefault();
+    var pre=$('prefijo').value.trim()||'Animal', n=parseInt($('cantidad').value,10), msg=$('addMsg');
+    if(!(n>=1&&n<=200)){msg.className='msg';msg.textContent='La cantidad debe estar entre 1 y 200.';msg.hidden=false;return}
+    var base=state.animals.map(function(a){return a.nombre});
+    var created=[],i=0,k=0;
+    var names=[];
+    if(n===1&&base.indexOf(pre)<0){names.push(pre)}
+    else{
+      var re=new RegExp('^'+pre.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'-(\\d+)$'),max=0;
+      base.forEach(function(s){var m=re.exec(s);if(m)max=Math.max(max,parseInt(m[1],10))});
+      for(k=1;k<=n;k++)names.push(pre+'-'+String(max+k).padStart(3,'0'));
+    }
+    $('addBtn').disabled=true;
+    var chain=Promise.resolve();
+    names.forEach(function(nm){chain=chain.then(function(){var a={id:uid(),nombre:nm,creado:Date.now(),registros:[]};created.push(a);return saveAnimal(a)})});
+    chain.then(function(){
+      state.sel=created[0].id;
+      msg.className='msg ok';msg.textContent=n+(n===1?' animal agregado.':' animales agregados.');msg.hidden=false;
+      $('prefijo').value='';$('cantidad').value='1';
+      if(mode==='db')render();
+    }).catch(function(err){msg.className='msg';msg.textContent='No se pudo guardar'+(err&&err.code==='quota_exceeded'?': se alcanzó el límite de almacenamiento.':'. Intenta de nuevo.');msg.hidden=false})
+    .then(function(){$('addBtn').disabled=false});
+  });
+
+  $('ficha').addEventListener('click',function(e){
+    if(e.target.id==='delBtn'){
+      $('delArea').innerHTML='<span class="hint">¿Eliminar este animal y todo su historial?</span> <button type="button" class="danger" id="delYes">Sí, eliminar</button> <button type="button" class="ghost" id="delNo">Cancelar</button>';
+    }else if(e.target.id==='delNo'){renderFicha()}
+    else if(e.target.id==='delYes'){var id=state.sel;state.sel=null;removeAnimal(id).then(function(){render()})}
+  });
+
+  $('ficha').addEventListener('submit',function(e){
+    if(e.target.id!=='regForm')return;
+    e.preventDefault();
+    var form=e.target, a=state.animals.find(function(x){return x.id===state.sel}); if(!a)return;
+    var keys=['fecha','peso','edad','raza','vitaminas','vacunas','descorne'], names={fecha:'fecha',peso:'peso',edad:'edad',raza:'raza',vitaminas:'vitaminas',vacunas:'vacunas',descorne:'descorne'};
+    var missing=[],val={};
+    keys.forEach(function(k){var el=form.elements[k],s=String(el.value).trim();el.classList.remove('bad');
+      var bad=!s||((k==='peso')&&!(parseFloat(s)>0))||((k==='edad')&&!(parseFloat(s)>=0))||((k==='fecha')&&s>today());
+      if(bad){el.classList.add('bad');missing.push(names[k])}val[k]=s});
+    var msg=$('regMsg');
+    if(missing.length){msg.className='msg';msg.textContent='Completa todos los campos para guardar el registro. Falta revisar: '+missing.join(', ')+'.';msg.hidden=false;form.elements[keys.filter(function(k){return form.elements[k].classList.contains('bad')})[0]].focus();return}
+    var reg={id:uid(),creado:Date.now(),fecha:val.fecha,peso:parseFloat(val.peso),edad:Math.round(parseFloat(val.edad)),raza:val.raza,vitaminas:val.vitaminas,vacunas:val.vacunas,descorne:val.descorne};
+    var upd=Object.assign({},a,{registros:(a.registros||[]).concat([reg])});
+    var btn=form.querySelector('button[type=submit]');btn.disabled=true;
+    saveAnimal(upd).then(function(){
+      if(mode==='db'){var i=state.animals.findIndex(function(x){return x.id===a.id});if(i>=0)state.animals[i]=upd}
+      var f2=document.getElementById('regForm');if(f2)delete f2.dataset.id;
+      render();var m=$('regMsg');m.className='msg ok';m.textContent='Registro del '+fmtDate(reg.fecha)+' guardado.';m.hidden=false;
+    }).catch(function(){msg.className='msg';msg.textContent='No se pudo guardar el registro. Intenta de nuevo.';msg.hidden=false;btn.disabled=false});
+  });
+
+  /* ---------- Arranque y sesión ---------- */
+  function startData(){
+    var timer=setTimeout(function(){$('store').textContent='Conectando con tus datos...'},8000);
+    unsub=onSnapshot(collection(dbf,'usuarios',uid,'animales'),function(snap){
+      clearTimeout(timer);
+      state.animals=snap.docs.map(function(s){var o=s.data();o.id=s.id;o.registros=o.registros||[];return o});
+      state.loaded=true;
+      if(!state.sel||!state.animals.some(function(x){return x.id===state.sel}))state.sel=state.animals.length?state.animals.slice().sort(byName)[0].id:null;
+      render();
+    },function(){clearTimeout(timer);state.loaded=true;render();$('store').textContent='No se pudieron leer tus datos. Revisa las reglas de Firestore y tu conexión.'});
+  }
+  function showAuth(){$('app').hidden=true;$('auth').hidden=false;$('clave').value='';$('clave2').value=''}
+  function showApp(name){$('auth').hidden=true;$('app').hidden=false;$('who').textContent=name;render()}
+  function setTab(reg){
+    regMode=reg;
+    $('tabIn').setAttribute('aria-selected',String(!reg));$('tabUp').setAttribute('aria-selected',String(reg));
+    $('nombreRow').hidden=!reg;$('clave2Row').hidden=!reg;$('resetBtn').hidden=reg;
+    $('authBtn').textContent=reg?'Crear cuenta':'Entrar';
+    $('clave').autocomplete=reg?'new-password':'current-password';
+    $('authMsg').hidden=true;
+  }
+  function errText(c){
+    var m={'auth/invalid-credential':'Correo o contraseña incorrectos.','auth/wrong-password':'Correo o contraseña incorrectos.','auth/user-not-found':'Correo o contraseña incorrectos.',
+      'auth/email-already-in-use':'Ya existe una cuenta con ese correo. Inicia sesión.','auth/weak-password':'La contraseña debe tener mínimo 6 caracteres.',
+      'auth/invalid-email':'Escribe un correo válido.','auth/too-many-requests':'Demasiados intentos. Espera unos minutos e intenta de nuevo.',
+      'auth/network-request-failed':'Sin conexión con el servidor. Revisa tu internet.','auth/operation-not-allowed':'El acceso con correo y contraseña no está activado en Firebase.',
+      'auth/unauthorized-domain':'Este dominio no está autorizado en Firebase (Authentication, Configuración, Dominios autorizados).'};
+    return m[c]||('No se pudo completar la acción ('+(c||'error')+').');
+  }
+  $('tabIn').addEventListener('click',function(){setTab(false)});
+  $('tabUp').addEventListener('click',function(){setTab(true)});
+  $('logoutBtn').addEventListener('click',function(){signOut(auth)});
+  $('resetBtn').addEventListener('click',function(){
+    var email=$('usuario').value.trim(), msg=$('authMsg');
+    if(!email){msg.className='msg';msg.textContent='Escribe tu correo arriba y vuelve a pulsar este botón.';msg.hidden=false;return}
+    sendPasswordResetEmail(auth,email).then(function(){msg.className='msg ok';msg.textContent='Si el correo tiene cuenta, recibirás un enlace para cambiar la contraseña.';msg.hidden=false})
+      .catch(function(err){msg.className='msg';msg.textContent=errText(err.code);msg.hidden=false});
+  });
+  $('authForm').addEventListener('submit',function(e){
+    e.preventDefault();
+    var email=$('usuario').value.trim(), pass=$('clave').value, msg=$('authMsg'), btn=$('authBtn'), nombre=$('nombre').value.trim();
+    function fail(t){msg.className='msg';msg.textContent=t;msg.hidden=false;btn.disabled=false}
+    if(!email||email.indexOf('@')<1){fail('Escribe un correo válido.');return}
+    if(!pass){fail('Escribe tu contraseña.');return}
+    if(regMode){
+      if(nombre.length<2){fail('Escribe tu nombre completo.');return}
+      if(pass.length<6){fail('La contraseña debe tener mínimo 6 caracteres.');return}
+      if(pass!==$('clave2').value){fail('Las contraseñas no coinciden.');return}
+    }
+    btn.disabled=true;msg.hidden=true;
+    setPersistence(auth,$('recordar').checked?browserLocalPersistence:browserSessionPersistence).then(function(){
+      if(!regMode)return signInWithEmailAndPassword(auth,email,pass);
+      return createUserWithEmailAndPassword(auth,email,pass).then(function(c){return updateProfile(c.user,{displayName:nombre}).then(function(){$('who').textContent=nombre})});
+    }).then(function(){btn.disabled=false}).catch(function(err){fail(errText(err.code))});
+  });
+  onAuthStateChanged(auth,function(user){
+    if(unsub){unsub();unsub=null}
+    state.animals=[];state.sel=null;state.loaded=false;state.q='';$('buscar').value='';
+    if(!user){uid=null;setTab(false);showAuth();return}
+    uid=user.uid;showApp(user.displayName||user.email);startData();
+  });
+})();
+</script>
+</body>
+</html>
