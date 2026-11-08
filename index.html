@@ -102,7 +102,8 @@ html{color-scheme:light}body{margin:0}[hidden]{display:none!important}
     </div>
     <form id="authForm" novalidate>
       <label id="nombreRow" for="nombre" hidden>Nombre completo<input id="nombre" autocomplete="name"></label>
-      <label for="usuario">Correo electrónico<input id="usuario" type="email" autocomplete="email" autocapitalize="none" placeholder="tucorreo@ejemplo.com"></label>
+      <label id="nickRow" for="nick" hidden>Nombre de usuario<input id="nick" autocomplete="username" autocapitalize="none" placeholder="Ej. finca_lopez"></label>
+      <label for="usuario"><span id="usuarioTxt">Correo o usuario</span><input id="usuario" type="text" autocomplete="username" autocapitalize="none" placeholder="Correo o nombre de usuario"></label>
       <label for="clave">Contraseña<input id="clave" type="password" autocomplete="current-password"></label>
       <label id="clave2Row" for="clave2" hidden>Confirmar contraseña<input id="clave2" type="password" autocomplete="new-password"></label>
       <label class="chk" for="recordar"><input id="recordar" type="checkbox"> Mantener la sesión iniciada en este dispositivo</label>
@@ -110,7 +111,7 @@ html{color-scheme:light}body{margin:0}[hidden]{display:none!important}
       <button type="submit" id="authBtn">Entrar</button>
       <button type="button" class="ghost" id="resetBtn">¿Olvidaste tu contraseña?</button>
     </form>
-    <p class="hint" id="authHint">Contraseña de mínimo 6 caracteres. Cada cuenta ve solo sus propios animales.</p>
+    <p class="hint" id="authHint">Usuario de 3 a 24 caracteres (letras, números, guion o guion bajo). Contraseña de mínimo 6 caracteres. Cada cuenta ve solo sus propios animales.</p>
   </div>
 </div>
 
@@ -150,7 +151,7 @@ html{color-scheme:light}body{margin:0}[hidden]{display:none!important}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, sendPasswordResetEmail, setPersistence, browserLocalPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, doc, getDoc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 const firebaseConfig = {
   apiKey: "AIzaSyANvbtx7QTxvM6Hw0OvJEg_cOH-ntU5224",
   authDomain: "control-ganadero-24a5b.firebaseapp.com",
@@ -322,7 +323,8 @@ const dbf = getFirestore(app);
   function setTab(reg){
     regMode=reg;
     $('tabIn').setAttribute('aria-selected',String(!reg));$('tabUp').setAttribute('aria-selected',String(reg));
-    $('nombreRow').hidden=!reg;$('clave2Row').hidden=!reg;$('resetBtn').hidden=reg;
+    $('nombreRow').hidden=!reg;$('nickRow').hidden=!reg;$('clave2Row').hidden=!reg;$('resetBtn').hidden=reg;
+    $('usuarioTxt').textContent=reg?'Correo electrónico':'Correo o usuario';$('usuario').type=reg?'email':'text';$('usuario').placeholder=reg?'tucorreo@ejemplo.com':'Correo o nombre de usuario';
     $('authBtn').textContent=reg?'Crear cuenta':'Entrar';
     $('clave').autocomplete=reg?'new-password':'current-password';
     $('authMsg').hidden=true;
@@ -338,28 +340,52 @@ const dbf = getFirestore(app);
   $('tabIn').addEventListener('click',function(){setTab(false)});
   $('tabUp').addEventListener('click',function(){setTab(true)});
   $('logoutBtn').addEventListener('click',function(){signOut(auth)});
+  function resolveEmail(ident){
+    ident=ident.trim();
+    if(ident.indexOf('@')>0)return Promise.resolve(ident);
+    if(!/^[a-z0-9_-]{3,24}$/i.test(ident))return Promise.resolve(null);
+    return getDoc(doc(dbf,'usernames',ident.toLowerCase())).then(function(s){return s.exists()?s.data().email:null});
+  }
   $('resetBtn').addEventListener('click',function(){
-    var email=$('usuario').value.trim(), msg=$('authMsg');
-    if(!email){msg.className='msg';msg.textContent='Escribe tu correo arriba y vuelve a pulsar este botón.';msg.hidden=false;return}
-    sendPasswordResetEmail(auth,email).then(function(){msg.className='msg ok';msg.textContent='Si el correo tiene cuenta, recibirás un enlace para cambiar la contraseña.';msg.hidden=false})
-      .catch(function(err){msg.className='msg';msg.textContent=errText(err.code);msg.hidden=false});
+    var ident=$('usuario').value.trim(), msg=$('authMsg');
+    function say(c,t){msg.className=c;msg.textContent=t;msg.hidden=false}
+    if(!ident){say('msg','Escribe tu correo o usuario arriba y vuelve a pulsar este botón.');return}
+    resolveEmail(ident).then(function(email){return email?sendPasswordResetEmail(auth,email):null})
+      .then(function(){say('msg ok','Si la cuenta existe, recibirás un enlace en tu correo para cambiar la contraseña.')})
+      .catch(function(err){say('msg',errText(err.code))});
   });
   $('authForm').addEventListener('submit',function(e){
     e.preventDefault();
-    var email=$('usuario').value.trim(), pass=$('clave').value, msg=$('authMsg'), btn=$('authBtn'), nombre=$('nombre').value.trim();
+    var ident=$('usuario').value.trim(), pass=$('clave').value, msg=$('authMsg'), btn=$('authBtn'),
+        nombre=$('nombre').value.trim(), nick=$('nick').value.trim().toLowerCase();
     function fail(t){msg.className='msg';msg.textContent=t;msg.hidden=false;btn.disabled=false}
-    if(!email||email.indexOf('@')<1){fail('Escribe un correo válido.');return}
+    if(!ident){fail(regMode?'Escribe tu correo.':'Escribe tu correo o usuario.');return}
     if(!pass){fail('Escribe tu contraseña.');return}
     if(regMode){
       if(nombre.length<2){fail('Escribe tu nombre completo.');return}
+      if(!/^[a-z0-9_-]{3,24}$/.test(nick)){fail('El usuario debe tener de 3 a 24 caracteres: letras, números, guion o guion bajo.');return}
+      if(ident.indexOf('@')<1){fail('Escribe un correo válido.');return}
       if(pass.length<6){fail('La contraseña debe tener mínimo 6 caracteres.');return}
       if(pass!==$('clave2').value){fail('Las contraseñas no coinciden.');return}
     }
     btn.disabled=true;msg.hidden=true;
-    setPersistence(auth,$('recordar').checked?browserLocalPersistence:browserSessionPersistence).then(function(){
-      if(!regMode)return signInWithEmailAndPassword(auth,email,pass);
-      return createUserWithEmailAndPassword(auth,email,pass).then(function(c){return updateProfile(c.user,{displayName:nombre}).then(function(){$('who').textContent=nombre})});
-    }).then(function(){btn.disabled=false}).catch(function(err){fail(errText(err.code))});
+    var persist=setPersistence(auth,$('recordar').checked?browserLocalPersistence:browserSessionPersistence);
+    if(!regMode){
+      persist.then(function(){return resolveEmail(ident)}).then(function(email){
+        if(!email){fail('Usuario o contraseña incorrectos.');return}
+        return signInWithEmailAndPassword(auth,email,pass).then(function(){btn.disabled=false});
+      }).catch(function(err){fail(errText(err.code))});
+      return;
+    }
+    persist.then(function(){return getDoc(doc(dbf,'usernames',nick))}).then(function(snap){
+      if(snap.exists()){fail('Ese nombre de usuario ya está en uso.');return}
+      return createUserWithEmailAndPassword(auth,ident,pass).then(function(c){
+        return setDoc(doc(dbf,'usernames',nick),{uid:c.user.uid,email:ident})
+          .then(function(){return updateProfile(c.user,{displayName:nombre})})
+          .then(function(){$('who').textContent=nombre;btn.disabled=false})
+          .catch(function(){return c.user.delete().catch(function(){}).then(function(){fail('No se pudo reservar ese nombre de usuario. Prueba con otro.')})});
+      });
+    }).catch(function(err){fail(errText(err.code))});
   });
   onAuthStateChanged(auth,function(user){
     if(unsub){unsub();unsub=null}
