@@ -268,6 +268,17 @@ tbody tr:hover{background:var(--accent-soft)}
 .empty{background:var(--item)}
 body:has(#auth:not([hidden])){background:linear-gradient(160deg,#183F2D 0%,#286B49 60%,#6FA586 100%) fixed}
 
+/* Navegación fluida: desplazamiento suave e indicador que se desliza entre botones */
+html{scroll-behavior:smooth}
+#app,#addForm,#lista,#ficha{scroll-margin-top:14px}
+.side{position:sticky}
+.navpill{position:absolute;left:0;top:0;width:0;height:0;border-radius:10px;background:rgba(255,255,255,.18);pointer-events:none;z-index:0}
+.navpill.ready{transition:transform .38s cubic-bezier(.3,.7,.2,1),width .38s cubic-bezier(.3,.7,.2,1),height .38s cubic-bezier(.3,.7,.2,1)}
+.side .navl{position:relative;z-index:1}
+.side a.navl.act{color:#fff;font-weight:600}
+@media(max-width:900px){.side{position:fixed}.navpill{border-radius:12px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.navpill.ready{transition:none}}
+
 /* Botón de modo claro/oscuro */
 .themebtn{position:fixed;top:max(12px,env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px));z-index:30;width:46px;height:46px;min-height:46px;padding:0;border-radius:50%;
   display:grid;place-items:center;background:var(--surface);color:var(--ink);border:1px solid var(--line);box-shadow:var(--shadow)}
@@ -1636,6 +1647,47 @@ module.exports = QRCode;
 
 };
 return req("index")})();
+</script>
+<script>
+/* Navegación suave entre secciones (solo animación; no toca la lógica de la app) */
+(function(){
+  var nav=document.querySelector('.side'); if(!nav)return;
+  var links=[].slice.call(nav.querySelectorAll('a.navl'));
+  var pill=document.createElement('span'); pill.className='navpill'; pill.setAttribute('aria-hidden','true'); nav.insertBefore(pill,nav.firstChild);
+  var mq=window.matchMedia('(max-width: 900px)'), rm=window.matchMedia('(prefers-reduced-motion: reduce)');
+  var active=links[0], busy=null;
+  function target(a){var id=(a.getAttribute('href')||'').slice(1);return id==='app'?null:document.getElementById(id)}
+  function place(){
+    if(!active||!active.offsetWidth)return;
+    pill.style.width=active.offsetWidth+'px';pill.style.height=active.offsetHeight+'px';
+    pill.style.transform='translate('+active.offsetLeft+'px,'+active.offsetTop+'px)';
+    if(!pill.classList.contains('ready'))requestAnimationFrame(function(){pill.classList.add('ready')});
+  }
+  function setActive(a){active=a;links.forEach(function(l){l.classList.toggle('act',l===a)});place()}
+  links.forEach(function(a){
+    a.addEventListener('click',function(e){
+      e.preventDefault();
+      setActive(a);
+      clearTimeout(busy);busy=setTimeout(function(){busy=null},900);
+      var t=target(a), b=rm.matches?'auto':'smooth';
+      if(!t)window.scrollTo({top:0,behavior:b});
+      else t.scrollIntoView({behavior:b,block:'start'});
+    });
+  });
+  var tick=false;
+  window.addEventListener('scroll',function(){
+    if(tick||busy||!mq.matches)return;tick=true;
+    requestAnimationFrame(function(){
+      tick=false;var line=window.innerHeight*0.4, best=links[0], bt=-Infinity;
+      links.forEach(function(a){var t=target(a);if(!t)return;var top=t.getBoundingClientRect().top;if(top<=line&&top>bt){bt=top;best=a}});
+      if(best!==active)setActive(best);
+    });
+  },{passive:true});
+  window.addEventListener('resize',place);
+  var app=document.getElementById('app');
+  if(app&&window.MutationObserver)new MutationObserver(function(){setTimeout(place,0)}).observe(app,{attributes:true,attributeFilter:['hidden']});
+  setActive(active);
+})();
 </script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
