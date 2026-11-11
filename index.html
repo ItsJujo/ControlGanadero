@@ -290,9 +290,26 @@ html{scroll-behavior:smooth}
 @media(max-width:560px){.userbox{margin-right:0}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 
-/* Modo claro azulado: fondos, tarjetas, bordes y resaltes en azul claro; el verde se queda en botones, cabecera y barra lateral */
-:root{--bg:#E4EDF6;--surface:#F6F9FC;--item:#E9F0F8;--field:#EFF4FA;--ink:#25313C;--muted:#52616F;--line:#C6D5E4;--accent-soft:#D3E3F3;
-  --shadow:0 1px 2px rgba(30,64,100,.07),0 6px 18px rgba(30,64,100,.07)}
+/* Modo claro azul: acento, cabecera y barra lateral en azul; fondos y tarjetas tintados (intermedio entre el azul y el blanco) */
+:root{--g900:#17375E;--g700:#2A64A8;--bg:#D8E4F2;--surface:#EDF3FA;--item:#E2EBF6;--field:#E8F0F9;--ink:#1E2C3B;--muted:#4A5E73;--line:#B9CDE3;
+  --accent:#2A64A8;--accent-ink:#FFFFFF;--accent-soft:#CADCF0;--g100:#CADCF0;--side:#17375E;--hero-a:#17375E;--hero-b:#2A64A8;--ok:#1F5E9C;
+  --shadow:0 1px 2px rgba(23,55,94,.08),0 8px 22px rgba(23,55,94,.10);
+  --auth-a:#17375E;--auth-b:#2A64A8;--auth-c:#7FA6D4}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--auth-a:#183F2D;--auth-b:#286B49;--auth-c:#6FA586}}
+:root[data-theme="dark"]{--auth-a:#183F2D;--auth-b:#286B49;--auth-c:#6FA586}
+body:has(#auth:not([hidden])){background:linear-gradient(160deg,var(--auth-a) 0%,var(--auth-b) 60%,var(--auth-c) 100%) fixed}
+#pub>.top #pubBtn{color:var(--hero-a)}
+
+/* Animación al cambiar de tema: círculo que se expande desde el botón (con respaldo de fundido suave) */
+::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
+::view-transition-old(root){z-index:1}
+::view-transition-new(root){z-index:2}
+.themebtn.flip svg{animation:themeflip .6s cubic-bezier(.3,.7,.2,1)}
+@keyframes themeflip{0%{transform:rotate(-120deg) scale(.4);opacity:0}100%{transform:none;opacity:1}}
+@media(prefers-reduced-motion:no-preference){
+  html.theme-anim,html.theme-anim *{transition:background-color .5s ease,color .5s ease,border-color .5s ease,box-shadow .5s ease,fill .5s ease!important}
+}
+@media(prefers-reduced-motion:reduce){.themebtn.flip svg{animation:none}}
 </style>
 </head>
 <body>
@@ -307,7 +324,22 @@ html{scroll-behavior:smooth}
   function sys(){return window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}
   function cur(){return root.getAttribute('data-theme')||sys()}
   function paint(){var d=cur()==='dark';btn.innerHTML=d?SUN:MOON;btn.title=d?'Cambiar a modo claro':'Cambiar a modo oscuro';btn.setAttribute('aria-pressed',String(d))}
-  btn.addEventListener('click',function(){var n=cur()==='dark'?'light':'dark';root.setAttribute('data-theme',n);try{localStorage.setItem(KEY,n)}catch(e){}paint()});
+  function apply(n){root.setAttribute('data-theme',n);try{localStorage.setItem(KEY,n)}catch(e){}paint()}
+  btn.addEventListener('click',function(){
+    var n=cur()==='dark'?'light':'dark';
+    var rm=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(rm){apply(n);return}
+    btn.classList.remove('flip');void btn.offsetWidth;
+    if(document.startViewTransition){
+      var r=btn.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2;
+      var rad=Math.hypot(Math.max(x,window.innerWidth-x),Math.max(y,window.innerHeight-y));
+      var t=document.startViewTransition(function(){apply(n);btn.classList.add('flip')});
+      t.ready.then(function(){root.animate({clipPath:['circle(0px at '+x+'px '+y+'px)','circle('+rad+'px at '+x+'px '+y+'px)']},{duration:650,easing:'cubic-bezier(.4,0,.2,1)',pseudoElement:'::view-transition-new(root)'})}).catch(function(){});
+    }else{
+      root.classList.add('theme-anim');apply(n);btn.classList.add('flip');
+      setTimeout(function(){root.classList.remove('theme-anim')},650);
+    }
+  });
   paint();
 })();
 </script>
