@@ -383,7 +383,7 @@ body:has(#auth:not([hidden])){background:linear-gradient(160deg,var(--auth-a) 0%
   <header class="top hero">
     <div>
       <h1>Control Ganadero</h1>
-      <p>Peso, vitaminas, raza, edad, vacunas y descorne de cada animal, con su fecha.</p>
+      <p>Peso, vitaminas, raza, edad (se calcula con la fecha de nacimiento), vacunas y descorne de cada animal, con su fecha.</p>
     </div>
     <div class="heroright">
       <div class="userbox">Sesión de <b id="who"></b></div>
@@ -399,8 +399,9 @@ body:has(#auth:not([hidden])){background:linear-gradient(160deg,var(--auth-a) 0%
           <label for="prefijo">Nombre o prefijo<input id="prefijo" placeholder="Ej. Vaca" autocomplete="off"></label>
           <label for="cantidad">Cantidad<input id="cantidad" type="number" min="1" max="200" value="1" inputmode="numeric"></label>
         </div>
+        <label for="nacimientoAlta">Fecha de nacimiento<input id="nacimientoAlta" type="date"></label>
         <button type="submit" id="addBtn">Agregar animales</button>
-        <p class="hint">Con cantidad mayor a 1 se numeran solos: Vaca-001, Vaca-002...</p>
+        <p class="hint">Con cantidad mayor a 1 se numeran solos: Vaca-001, Vaca-002... Todos los del grupo llevan la misma fecha de nacimiento; si nacieron en días distintos, agrégalos por separado.</p>
         <div id="addMsg" role="status" hidden></div>
       </form>
       <label for="buscar">Buscar<input id="buscar" type="search" placeholder="Nombre o raza"></label>
@@ -1749,6 +1750,20 @@ const dbf = getFirestore(app);
 
   function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
   function today(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+  function calcAge(nac,fecha){
+    var b=nac.split('-').map(Number),f=fecha.split('-').map(Number);
+    var fu=Date.UTC(f[0],f[1]-1,f[2]);
+    function anchor(m){var y=b[0],mo=b[1]-1+m,dim=new Date(Date.UTC(y,mo+1,0)).getUTCDate();return Date.UTC(y,mo,Math.min(b[2],dim))}
+    if(fu<Date.UTC(b[0],b[1]-1,b[2]))return null;
+    var m=(f[0]-b[0])*12+(f[1]-b[1]);
+    while(m>0&&anchor(m)>fu)m--;
+    return {meses:m,dias:Math.round((fu-anchor(m))/86400000)};
+  }
+  function ageTxt(m,d,largo){
+    if(m==null)return '';
+    if(d==null)return m+(largo?(m===1?' mes':' meses'):' m');
+    return largo?(m+(m===1?' mes':' meses')+' y '+d+(d===1?' día':' días')):(m+' m '+d+' d');
+  }
   function fmtDate(s){if(!s)return '';var p=s.split('-');return p[2]+'/'+p[1]+'/'+p[0]}
   function sorted(a){return (a.registros||[]).slice().sort(function(x,y){return x.fecha<y.fecha?1:x.fecha>y.fecha?-1:(y.creado||0)-(x.creado||0)})}
   function newId(){var b=new Uint8Array(9);crypto.getRandomValues(b);var t='';b.forEach(function(x){t+=x.toString(36).padStart(2,'0')});return 'a'+t}
@@ -1809,6 +1824,14 @@ const dbf = getFirestore(app);
     return '<div><h3>Evolución del peso (kg)</h3><svg class="chart" viewBox="0 0 '+W+' '+H+'" width="100%" role="img" aria-label="Gráfica del peso en el tiempo">'+grid+'<path d="'+d+'"/>'+dots+lab+'</svg></div>';
   }
 
+  function updAge(){
+    var form=document.getElementById('regForm');if(!form)return;
+    var a=state.animals.find(function(x){return x.id===form.dataset.id});if(!a)return;
+    var nac=a.nacimiento||(form.elements.nacimiento?form.elements.nacimiento.value:''),fe=form.elements.fecha.value,out='';
+    if(nac&&fe){var r=calcAge(nac,fe);out=r?ageTxt(r.meses,r.dias,true):'Fecha anterior al nacimiento'}
+    form.elements.edad.value=out;
+  }
+
   function renderFicha(){
     var a=state.animals.find(function(x){return x.id===state.sel});
     var f=$('ficha');
@@ -1816,17 +1839,18 @@ const dbf = getFirestore(app);
     var regs=sorted(a), last=regs[0];
     var prevForm=document.getElementById('regForm');
     var keep={};
-    if(prevForm&&prevForm.dataset.id===a.id){['fecha','peso','edad','raza','vitaminas','vacunas','descorne'].forEach(function(k){keep[k]=prevForm.elements[k].value})}
+    if(prevForm&&prevForm.dataset.id===a.id){['fecha','peso','nacimiento','raza','vitaminas','vacunas','descorne'].forEach(function(k){if(prevForm.elements[k])keep[k]=prevForm.elements[k].value})}
     var v=function(k,def){return keep[k]!==undefined&&keep[k]!==''?keep[k]:def};
-    var html='<div class="head"><div class="idrow"><div class="qrbox" title="Código QR de la ficha pública">'+qrFor(a.id)+'</div><div><h2>'+esc(a.nombre)+'</h2><p class="hint">'+regs.length+' registro'+(regs.length===1?'':'s')+'</p><div class="qrbtns"><button type="button" class="ghost sm" id="qrDl">Descargar QR</button><button type="button" class="ghost sm" id="qrPrint">Imprimir etiqueta</button><button type="button" class="ghost sm" id="qrCopy">Copiar enlace</button></div></div></div>'+
+    var html='<div class="head"><div class="idrow"><div class="qrbox" title="Código QR de la ficha pública">'+qrFor(a.id)+'</div><div><h2>'+esc(a.nombre)+'</h2><p class="hint">'+regs.length+' registro'+(regs.length===1?'':'s')+(a.nacimiento?' · Nació el '+fmtDate(a.nacimiento):'')+'</p><div class="qrbtns"><button type="button" class="ghost sm" id="qrDl">Descargar QR</button><button type="button" class="ghost sm" id="qrPrint">Imprimir etiqueta</button><button type="button" class="ghost sm" id="qrCopy">Copiar enlace</button></div></div></div>'+
       '<div id="delArea"><button type="button" class="danger" id="delBtn">Eliminar animal</button></div></div>';
     if(pubFail)html+='<p class="msg">La ficha pública no se pudo publicar, así que el QR todavía no abrirá la tabla. Revisa las reglas de Firestore (colección publico).</p>';
-    if(last){html+='<div class="last"><div><span>Último registro</span><b>'+fmtDate(last.fecha)+'</b></div><div><span>Peso</span><b>'+last.peso+' kg</b></div><div><span>Edad</span><b>'+last.edad+' meses</b></div><div><span>Raza</span><b>'+esc(last.raza)+'</b></div><div><span>Descorne</span><b>'+esc(last.descorne)+'</b></div></div>'}
+    if(last){html+='<div class="last"><div><span>Último registro</span><b>'+fmtDate(last.fecha)+'</b></div><div><span>Peso</span><b>'+last.peso+' kg</b></div><div><span>Edad</span><b>'+ageTxt(last.edad,last.edadDias,true)+'</b></div><div><span>Raza</span><b>'+esc(last.raza)+'</b></div><div><span>Descorne</span><b>'+esc(last.descorne)+'</b></div></div>'}
     html+='<form id="regForm" data-id="'+esc(a.id)+'" novalidate style="display:flex;flex-direction:column;gap:12px">'+
       '<h3>Nuevo registro</h3><p class="hint">Todos los campos son obligatorios para guardar una fecha.</p>'+
       '<div class="row3"><label for="fecha">Fecha<input id="fecha" name="fecha" type="date" max="'+today()+'" value="'+v('fecha',today())+'"></label>'+
       '<label for="peso">Peso (kg)<input id="peso" name="peso" type="number" min="1" max="2000" step="0.1" inputmode="decimal" value="'+esc(v('peso',''))+'"></label>'+
-      '<label for="edad">Edad (meses)<input id="edad" name="edad" type="number" min="0" max="400" step="1" inputmode="numeric" value="'+esc(v('edad',''))+'"></label></div>'+
+      '<label for="edad">Edad (automática)<input id="edad" name="edad" type="text" readonly tabindex="-1" placeholder="Se calcula sola" value=""></label></div>'+
+      (a.nacimiento?'':'<div class="row"><label for="nacimiento">Fecha de nacimiento (solo se pide una vez)<input id="nacimiento" name="nacimiento" type="date" max="'+today()+'" value="'+esc(v('nacimiento',''))+'"></label></div>')+
       '<div class="row"><label for="raza">Raza<input id="raza" name="raza" placeholder="Ej. Brahman, Holstein" value="'+esc(v('raza',last?last.raza:''))+'"></label>'+
       '<label for="descorne">Descorne<select id="descorne" name="descorne"><option value="">Elegir...</option><option'+(v('descorne','')==='Realizado'?' selected':'')+'>Realizado</option><option'+(v('descorne','')==='No realizado'?' selected':'')+'>No realizado</option></select></label></div>'+
       '<div class="row"><label for="vitaminas">Vitaminas suministradas<textarea id="vitaminas" name="vitaminas" placeholder="Producto y dosis">'+esc(v('vitaminas',''))+'</textarea></label>'+
@@ -1834,15 +1858,17 @@ const dbf = getFirestore(app);
       '<div id="regMsg" role="alert" hidden></div><div><button type="submit">Guardar registro</button></div></form>'+
       chart(regs)+
       '<div><h3>Historial</h3>'+(regs.length?'<div class="tablewrap"><table><thead><tr><th>Fecha</th><th>Peso</th><th>Edad</th><th>Raza</th><th>Vitaminas</th><th>Vacunas</th><th>Descorne</th></tr></thead><tbody>'+
-      regs.map(function(r){return '<tr><td class="n">'+fmtDate(r.fecha)+'</td><td class="n">'+r.peso+' kg</td><td class="n">'+r.edad+' m</td><td>'+esc(r.raza)+'</td><td>'+esc(r.vitaminas)+'</td><td>'+esc(r.vacunas)+'</td><td>'+esc(r.descorne)+'</td></tr>'}).join('')+
+      regs.map(function(r){return '<tr><td class="n">'+fmtDate(r.fecha)+'</td><td class="n">'+r.peso+' kg</td><td class="n">'+ageTxt(r.edad,r.edadDias)+'</td><td>'+esc(r.raza)+'</td><td>'+esc(r.vitaminas)+'</td><td>'+esc(r.vacunas)+'</td><td>'+esc(r.descorne)+'</td></tr>'}).join('')+
       '</tbody></table></div>':'<div class="empty">Este animal todavía no tiene registros.</div>')+'</div>';
     f.innerHTML=html;
+    updAge();
   }
 
   function render(){renderStats();renderList();renderFicha();
     $('store').textContent = 'Datos guardados en tu cuenta.';ensurePublic();}
 
   /* ---------- Eventos ---------- */
+  $('nacimientoAlta').max=today();
   $('buscar').addEventListener('input',function(e){state.q=e.target.value;renderList()});
   $('lista').addEventListener('click',function(e){var b=e.target.closest('.animal');if(!b)return;state.sel=b.dataset.id;render()});
 
@@ -1850,6 +1876,9 @@ const dbf = getFirestore(app);
     e.preventDefault();
     var pre=$('prefijo').value.trim()||'Animal', n=parseInt($('cantidad').value,10), msg=$('addMsg');
     if(!(n>=1&&n<=200)){msg.className='msg';msg.textContent='La cantidad debe estar entre 1 y 200.';msg.hidden=false;return}
+    var nac=$('nacimientoAlta').value;
+    $('nacimientoAlta').classList.remove('bad');
+    if(!nac||nac>today()){$('nacimientoAlta').classList.add('bad');msg.className='msg';msg.textContent=nac?'La fecha de nacimiento no puede ser futura.':'Indica la fecha de nacimiento del animal.';msg.hidden=false;$('nacimientoAlta').focus();return}
     var base=state.animals.map(function(a){return a.nombre});
     var created=[],i=0,k=0;
     var names=[];
@@ -1861,11 +1890,11 @@ const dbf = getFirestore(app);
     }
     $('addBtn').disabled=true;
     var chain=Promise.resolve();
-    names.forEach(function(nm){chain=chain.then(function(){var a={id:newId(),nombre:nm,creado:Date.now(),registros:[]};created.push(a);return saveAnimal(a)})});
+    names.forEach(function(nm){chain=chain.then(function(){var a={id:newId(),nombre:nm,nacimiento:nac,creado:Date.now(),registros:[]};created.push(a);return saveAnimal(a)})});
     chain.then(function(){
       state.sel=created[0].id;
       msg.className='msg ok';msg.textContent=n+(n===1?' animal agregado.':' animales agregados.');msg.hidden=false;
-      $('prefijo').value='';$('cantidad').value='1';
+      $('prefijo').value='';$('cantidad').value='1';$('nacimientoAlta').value='';
       if(mode==='db')render();
     }).catch(function(err){msg.className='msg';msg.textContent='No se pudo guardar'+(err&&err.code==='quota_exceeded'?': se alcanzó el límite de almacenamiento.':'. Intenta de nuevo.');msg.hidden=false})
     .then(function(){$('addBtn').disabled=false});
@@ -1886,19 +1915,24 @@ const dbf = getFirestore(app);
     else if(e.target.id==='delYes'){var id=state.sel;state.sel=null;removeAnimal(id).then(function(){render()})}
   });
 
+  $('ficha').addEventListener('input',function(e){if(e.target.id==='fecha'||e.target.id==='nacimiento')updAge()});
+
   $('ficha').addEventListener('submit',function(e){
     if(e.target.id!=='regForm')return;
     e.preventDefault();
     var form=e.target, a=state.animals.find(function(x){return x.id===state.sel}); if(!a)return;
-    var keys=['fecha','peso','edad','raza','vitaminas','vacunas','descorne'], names={fecha:'fecha',peso:'peso',edad:'edad',raza:'raza',vitaminas:'vitaminas',vacunas:'vacunas',descorne:'descorne'};
+    var needNac=!a.nacimiento;
+    var keys=(needNac?['nacimiento']:[]).concat(['fecha','peso','raza','vitaminas','vacunas','descorne']), names={nacimiento:'fecha de nacimiento',fecha:'fecha',peso:'peso',raza:'raza',vitaminas:'vitaminas',vacunas:'vacunas',descorne:'descorne'};
     var missing=[],val={};
     keys.forEach(function(k){var el=form.elements[k],s=String(el.value).trim();el.classList.remove('bad');
-      var bad=!s||((k==='peso')&&!(parseFloat(s)>0))||((k==='edad')&&!(parseFloat(s)>=0))||((k==='fecha')&&s>today());
+      var bad=!s||((k==='peso')&&!(parseFloat(s)>0))||((k==='nacimiento')&&s>today())||((k==='fecha')&&s>today());
       if(bad){el.classList.add('bad');missing.push(names[k])}val[k]=s});
     var msg=$('regMsg');
     if(missing.length){msg.className='msg';msg.textContent='Completa todos los campos para guardar el registro. Falta revisar: '+missing.join(', ')+'.';msg.hidden=false;form.elements[keys.filter(function(k){return form.elements[k].classList.contains('bad')})[0]].focus();return}
-    var reg={id:newId(),creado:Date.now(),fecha:val.fecha,peso:parseFloat(val.peso),edad:Math.round(parseFloat(val.edad)),raza:val.raza,vitaminas:val.vitaminas,vacunas:val.vacunas,descorne:val.descorne};
-    var upd=Object.assign({},a,{registros:(a.registros||[]).concat([reg])});
+    var nac=a.nacimiento||val.nacimiento, age=calcAge(nac,val.fecha);
+    if(!age){form.elements.fecha.classList.add('bad');msg.className='msg';msg.textContent='La fecha del registro no puede ser anterior a la fecha de nacimiento ('+fmtDate(nac)+').';msg.hidden=false;form.elements.fecha.focus();return}
+    var reg={id:newId(),creado:Date.now(),fecha:val.fecha,peso:parseFloat(val.peso),edad:age.meses,edadDias:age.dias,raza:val.raza,vitaminas:val.vitaminas,vacunas:val.vacunas,descorne:val.descorne};
+    var upd=Object.assign({},a,{nacimiento:nac,registros:(a.registros||[]).concat([reg])});
     var btn=form.querySelector('button[type=submit]');btn.disabled=true;
     saveAnimal(upd).then(function(){
       if(mode==='db'){var i=state.animals.findIndex(function(x){return x.id===a.id});if(i>=0)state.animals[i]=upd}
@@ -2015,10 +2049,10 @@ const dbf = getFirestore(app);
   function renderPub(d){
     var regs=sorted({registros:d.registros||[]}), last=regs[0];
     var h='<div class="head"><div><h2>'+esc(d.nombre||'Animal')+'</h2><p class="hint">Ficha de solo lectura · '+regs.length+' registro'+(regs.length===1?'':'s')+(d.actualizado?' · actualizada el '+new Date(d.actualizado).toLocaleDateString('es'):'')+'</p></div></div>';
-    if(last)h+='<div class="last"><div><span>Último registro</span><b>'+fmtDate(last.fecha)+'</b></div><div><span>Peso</span><b>'+last.peso+' kg</b></div><div><span>Edad</span><b>'+last.edad+' meses</b></div><div><span>Raza</span><b>'+esc(last.raza)+'</b></div><div><span>Descorne</span><b>'+esc(last.descorne)+'</b></div></div>';
+    if(last)h+='<div class="last"><div><span>Último registro</span><b>'+fmtDate(last.fecha)+'</b></div><div><span>Peso</span><b>'+last.peso+' kg</b></div><div><span>Edad</span><b>'+ageTxt(last.edad,last.edadDias,true)+'</b></div><div><span>Raza</span><b>'+esc(last.raza)+'</b></div><div><span>Descorne</span><b>'+esc(last.descorne)+'</b></div></div>';
     h+=chart(regs);
     h+='<div><h3>Historial</h3>'+(regs.length?'<div class="tablewrap"><table><thead><tr><th>Fecha</th><th>Peso</th><th>Edad</th><th>Raza</th><th>Vitaminas</th><th>Vacunas</th><th>Descorne</th></tr></thead><tbody>'+
-      regs.map(function(r){return '<tr><td class="n">'+fmtDate(r.fecha)+'</td><td class="n">'+r.peso+' kg</td><td class="n">'+r.edad+' m</td><td>'+esc(r.raza)+'</td><td>'+esc(r.vitaminas)+'</td><td>'+esc(r.vacunas)+'</td><td>'+esc(r.descorne)+'</td></tr>'}).join('')+
+      regs.map(function(r){return '<tr><td class="n">'+fmtDate(r.fecha)+'</td><td class="n">'+r.peso+' kg</td><td class="n">'+ageTxt(r.edad,r.edadDias)+'</td><td>'+esc(r.raza)+'</td><td>'+esc(r.vitaminas)+'</td><td>'+esc(r.vacunas)+'</td><td>'+esc(r.descorne)+'</td></tr>'}).join('')+
       '</tbody></table></div>':'<div class="empty">Este animal todavía no tiene registros.</div>')+'</div>';
     $('pubFicha').innerHTML=h;
   }
