@@ -310,6 +310,34 @@ body:has(#auth:not([hidden])){background:linear-gradient(160deg,var(--auth-a) 0%
   html.theme-anim,html.theme-anim *{transition:background-color .5s ease,color .5s ease,border-color .5s ease,box-shadow .5s ease,fill .5s ease!important}
 }
 @media(prefers-reduced-motion:reduce){.themebtn.flip svg{animation:none}}
+
+/* Módulos del bovino: pestañas, tarjetas, listas permanentes y ciclo reproductivo */
+#ficha>.mods{order:1}
+#ficha>div.modbody:last-child:not(.empty):not(.head),#pubFicha>div.modbody:last-child:not(.empty):not(.head){
+  order:5;background:transparent;box-shadow:none;padding:0;border-radius:0;display:flex;flex-direction:column;gap:18px;min-width:0}
+.mods{display:flex;gap:6px;background:var(--surface);padding:6px;border-radius:14px;box-shadow:var(--shadow);overflow-x:auto}
+.mods button{flex:1 1 0;min-width:0;min-height:48px;background:transparent;color:var(--ink);border:0;border-radius:10px;font-weight:600;line-height:1.15;text-align:center;padding:8px 6px;font-size:.92rem;transition:background .2s,color .2s}
+.mods button:hover{background:var(--accent-soft)}
+.mods button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink,#fff)}
+.card{background:var(--surface);border-radius:16px;box-shadow:var(--shadow);padding:clamp(16px,2.4vw,24px);min-width:0;display:flex;flex-direction:column;gap:14px;animation:modin .28s ease both}
+@keyframes modin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.card{animation:none}}
+.card h3,.card h4{margin:0!important}
+.cardhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.stack{display:flex;flex-direction:column;gap:12px}
+.btns{display:flex;gap:10px;flex-wrap:wrap}
+.entries{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.entry{display:flex;gap:14px;align-items:baseline;padding:10px 14px;border-radius:10px;background:var(--bg);border:1px solid var(--line)}
+.entry time{font-weight:700;color:var(--accent);white-space:nowrap;font-variant-numeric:tabular-nums}
+.entry span{min-width:0;overflow-wrap:anywhere}
+.rpgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.rpitem{border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.locked{display:flex;gap:14px;align-items:flex-start;padding:16px;border:1.5px dashed var(--line);border-radius:12px;color:var(--muted)}
+.locked svg{flex:none;width:28px;height:28px;color:var(--accent)}
+.locked b{display:block;color:var(--ink);margin-bottom:2px}
+.locked p{margin:0}
+.fmsg{font-size:.9rem;border-radius:8px;padding:10px 12px;background:var(--bad-soft);color:var(--bad);border:1px solid var(--bad)}
+.tablewrap table{min-width:0}
 </style>
 </head>
 <body>
@@ -348,7 +376,7 @@ body:has(#auth:not([hidden])){background:linear-gradient(160deg,var(--auth-a) 0%
   <div class="panel authcard">
     <div>
       <h1>Control Ganadero</h1>
-      <p class="hint" style="margin-top:6px">Ingresa para ver y registrar los animales del proyecto.</p>
+      <p class="hint" style="margin-top:6px">Ingresa para ver y registrar los bovinos del proyecto.</p>
     </div>
     <div class="tabs">
       <button type="button" class="tab" id="tabIn" aria-selected="true">Iniciar sesión</button>
@@ -373,9 +401,9 @@ body:has(#auth:not([hidden])){background:linear-gradient(160deg,var(--auth-a) 0%
   <nav class="side" aria-label="Navegación principal">
     <div class="brand"><svg class="logo" viewBox="0 0 48 48" aria-hidden="true"><circle cx="34" cy="13" r="5" fill="currentColor"/><path d="M3 40c9-15 16-17 24-9 5 5 11 3 18-7v16z" fill="currentColor"/></svg><span>Control<br>Ganadero</span></div>
     <a class="navl" href="#app"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Inicio</span></a>
-    <a class="navl" href="#addForm"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Registrar animal</span></a>
-    <a class="navl" href="#lista"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg><span>Mis animales</span></a>
-    <a class="navl" href="#ficha"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h7"/></svg><span>Ficha y registros</span></a>
+    <a class="navl" href="#addForm"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Registrar bovino</span></a>
+    <a class="navl" href="#lista"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg><span>Mis bovinos</span></a>
+    <a class="navl" href="#ficha"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h7"/></svg><span>Ficha y módulos</span></a>
     <span class="navsep"></span>
     <button type="button" class="ghost navl" id="logoutBtn"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5V3h4M16 17l5-5-5-5M21 12H9"/></svg><span>Cerrar sesión</span></button>
   </nav>
@@ -383,7 +411,7 @@ body:has(#auth:not([hidden])){background:linear-gradient(160deg,var(--auth-a) 0%
   <header class="top hero">
     <div>
       <h1>Control Ganadero</h1>
-      <p>Peso, vitaminas, raza, edad (se calcula con la fecha de nacimiento), vacunas y descorne de cada animal, con su fecha.</p>
+      <p>Ficha técnica, control sanitario, peso y ciclo reproductivo de cada bovino.</p>
     </div>
     <div class="heroright">
       <div class="userbox">Sesión de <b id="who"></b></div>
@@ -393,15 +421,11 @@ body:has(#auth:not([hidden])){background:linear-gradient(160deg,var(--auth-a) 0%
 
   <div class="layout">
     <aside class="panel">
-      <h2>Animales</h2>
+      <h2>Bovinos</h2>
       <form id="addForm" novalidate style="display:flex;flex-direction:column;gap:10px">
-        <div class="row">
-          <label for="prefijo">Nombre o prefijo<input id="prefijo" placeholder="Ej. Vaca" autocomplete="off"></label>
-          <label for="cantidad">Cantidad<input id="cantidad" type="number" min="1" max="200" value="1" inputmode="numeric"></label>
-        </div>
-        <label for="nacimientoAlta">Fecha de nacimiento<input id="nacimientoAlta" type="date"></label>
-        <button type="submit" id="addBtn">Agregar animales</button>
-        <p class="hint">Con cantidad mayor a 1 se numeran solos: Vaca-001, Vaca-002... Todos los del grupo llevan la misma fecha de nacimiento; si nacieron en días distintos, agrégalos por separado.</p>
+        <label for="prefijo">Nombre del bovino<input id="prefijo" placeholder="Ej. Lucero" autocomplete="off"></label>
+        <button type="submit" id="addBtn">Agregar bovino</button>
+        <p class="hint">Después completa su ficha técnica: fecha de nacimiento, sexo, raza y padres.</p>
         <div id="addMsg" role="status" hidden></div>
       </form>
       <label for="buscar">Buscar<input id="buscar" type="search" placeholder="Nombre o raza"></label>
@@ -416,7 +440,7 @@ body:has(#auth:not([hidden])){background:linear-gradient(160deg,var(--auth-a) 0%
 
 <div class="wrap" id="pub" hidden>
   <header class="top">
-    <div><h1>Control Ganadero</h1><p>Ficha del animal</p></div>
+    <div><h1>Control Ganadero</h1><p>Ficha del bovino</p></div>
     <button type="button" id="pubBtn">Iniciar sesión</button>
   </header>
   <main class="panel" id="pubFicha"></main>
@@ -1744,7 +1768,7 @@ const dbf = getFirestore(app);
 
 (function(){
   var $ = function(id){return document.getElementById(id)};
-  var state = {animals:[], sel:null, q:'', loaded:false};
+  var state = {animals:[], sel:null, q:'', loaded:false, tab:'ficha', open:null, edit:null, flash:null, focus:false};
   var mode = 'db', uid = null, unsub = null, regMode = false;
   var curUser = null, authReady = false, pubShown = null, synced = {}, pubFail = false, qrCache = {};
 
@@ -1769,8 +1793,122 @@ const dbf = getFirestore(app);
   function newId(){var b=new Uint8Array(9);crypto.getRandomValues(b);var t='';b.forEach(function(x){t+=x.toString(36).padStart(2,'0')});return 'a'+t}
   function byName(a,b){return a.nombre.localeCompare(b.nombre,'es',{numeric:true})}
 
+  /* ---------- Módulos: ficha técnica, sanitario, peso y reproductivo ---------- */
+  var REPRO_MESES=18;
+  var SAN=[
+    {k:'desparasitacion',t:'Desparasitación',l:'Producto y dosis',p:'Ej. Ivermectina, 1 ml'},
+    {k:'vitaminizacion',t:'Vitaminización',l:'Vitamina y dosis',p:'Ej. Vitamina ADE, 5 ml'},
+    {k:'vacunacion',t:'Vacunación',l:'Vacuna',p:'Ej. Aftosa, brucelosis'},
+    {k:'enfermedad',t:'Enfermedad',l:'Enfermedad y tratamiento',p:'Ej. Diarrea; suero oral'},
+    {k:'descorne',t:'Descorne',l:'Método o detalle',p:'Ej. Pasta cáustica',once:true},
+    {k:'ombligo',t:'Ombligo',l:'Curación o detalle',p:'Ej. Yodo al 7 %'}
+  ];
+  function addMonths(s,n){var b=s.split('-').map(Number),mo=b[1]-1+n,dim=new Date(Date.UTC(b[0],mo+1,0)).getUTCDate();return new Date(Date.UTC(b[0],mo,Math.min(b[2],dim))).toISOString().slice(0,10)}
+  function fichaOf(d){
+    var f=Object.assign({madre:'',padre:'',sexo:'',nacimiento:'',raza:'',pesoNac:''},d.ficha||{});
+    if(!f.nacimiento&&d.nacimiento)f.nacimiento=d.nacimiento;
+    if(!f.raza){var r=sorted(d).filter(function(x){return x.raza})[0];if(r)f.raza=r.raza}
+    return f;
+  }
+  function fichaDone(f){return !!(f.nacimiento&&f.sexo&&f.raza&&String(f.pesoNac)!=='')}
+  function byDateDesc(x,y){return x.fecha<y.fecha?1:x.fecha>y.fecha?-1:(y.creado||0)-(x.creado||0)}
+  function sanList(d,k){
+    var out=((d.sanitario&&d.sanitario[k])||[]).slice(), regs=sorted(d);
+    /* datos anteriores: lo que antes se escribía dentro del registro de peso se muestra aquí */
+    if(k==='vitaminizacion')regs.forEach(function(r){if(r.vitaminas)out.push({id:'v-'+r.id,fecha:r.fecha,detalle:r.vitaminas,creado:r.creado||0})});
+    if(k==='vacunacion')regs.forEach(function(r){if(r.vacunas)out.push({id:'c-'+r.id,fecha:r.fecha,detalle:r.vacunas,creado:r.creado||0})});
+    if(k==='descorne'&&!out.length){var dr=regs.filter(function(r){return r.descorne==='Realizado'}).pop();if(dr)out.push({id:'d-'+dr.id,fecha:dr.fecha,detalle:'Realizado',creado:dr.creado||0})}
+    return out.sort(byDateDesc);
+  }
+  function reproOf(d){var r=d.repro||{};return {celo:r.celo||null,servicio:r.servicio||null,partos:r.partos||[],dias:(r.dias===undefined||r.dias===null)?'':r.dias}}
+  function fld(label,val){return '<div><span>'+label+'</span><b>'+(val===''||val==null?'—':val)+'</b></div>'}
+  function lockSvg(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>'}
+
+  function viewFicha(d,ro,editing){
+    var f=fichaOf(d), age=f.nacimiento?calcAge(f.nacimiento,today()):null, done=fichaDone(f);
+    var h='<section class="card"><div class="cardhead"><h3>Ficha técnica</h3>'+((ro||editing)?'':'<button type="button" class="ghost sm" data-act="editFicha">Editar ficha</button>')+'</div>';
+    if(!editing){
+      return h+'<div class="last fgrid">'+fld('Nombre de la madre',esc(f.madre))+fld('Nombre del padre',esc(f.padre))+fld('Nombre de la cría',esc(d.nombre||''))+fld('Sexo',esc(f.sexo))+
+        fld('Fecha de nacimiento',f.nacimiento?fmtDate(f.nacimiento):'')+fld('Edad actual',age?ageTxt(age.meses,age.dias,true):'')+fld('Raza',esc(f.raza))+fld('Peso al nacimiento',String(f.pesoNac)!==''?esc(f.pesoNac)+' kg':'')+'</div></section>';
+    }
+    return h+'<form id="fichaForm" data-kind="ficha" novalidate class="stack">'+
+      (done?'':'<p class="hint">Completa la ficha técnica de este bovino. La madre y el padre son opcionales.</p>')+
+      '<div class="row"><label for="fm-madre">Nombre de la madre<input id="fm-madre" name="madre" autocomplete="off" value="'+esc(f.madre)+'"></label>'+
+      '<label for="fm-padre">Nombre del padre<input id="fm-padre" name="padre" autocomplete="off" value="'+esc(f.padre)+'"></label></div>'+
+      '<div class="row"><label for="fm-nombre">Nombre de la cría<input id="fm-nombre" name="nombre" autocomplete="off" value="'+esc(d.nombre||'')+'"></label>'+
+      '<label for="fm-sexo">Sexo<select id="fm-sexo" name="sexo"><option value="">Elegir...</option><option'+(f.sexo==='Hembra'?' selected':'')+'>Hembra</option><option'+(f.sexo==='Macho'?' selected':'')+'>Macho</option></select></label></div>'+
+      '<div class="row"><label for="fm-nac">Fecha de nacimiento<input id="fm-nac" name="nacimiento" type="date" max="'+today()+'" value="'+esc(f.nacimiento)+'"></label>'+
+      '<label for="fm-raza">Raza<input id="fm-raza" name="raza" placeholder="Ej. Brahman, Holstein" value="'+esc(f.raza)+'"></label></div>'+
+      '<label for="fm-peso">Peso al nacimiento (kg)<input id="fm-peso" name="pesoNac" type="number" min="1" max="200" step="0.1" inputmode="decimal" value="'+esc(f.pesoNac)+'"></label>'+
+      '<div class="fmsg" role="alert" hidden></div>'+
+      '<div class="btns"><button type="submit">Guardar ficha</button>'+(done?'<button type="button" class="ghost" data-act="cancelFicha">Cancelar</button>':'')+'</div></form></section>';
+  }
+
+  function viewSan(d,ro){
+    return SAN.map(function(c){
+      var list=sanList(d,c.k), blocked=!!(c.once&&list.length), key='san-'+c.k, open=!ro&&!blocked&&state.open===key;
+      var h='<section class="card"><div class="cardhead"><h3>'+c.t+'</h3>'+((ro||blocked)?'':'<button type="button" class="ghost sm" data-act="open" data-key="'+key+'">'+(open?'Cerrar':'+ Agregar')+'</button>')+'</div>';
+      if(open)h+='<form data-kind="san" data-key="'+c.k+'" novalidate class="stack"><div class="row">'+
+        '<label for="'+key+'-fecha">Fecha<input id="'+key+'-fecha" name="fecha" type="date" max="'+today()+'" value="'+today()+'"></label>'+
+        '<label for="'+key+'-detalle">'+c.l+'<input id="'+key+'-detalle" name="detalle" autocomplete="off" placeholder="'+esc(c.p)+'"></label></div>'+
+        '<div class="fmsg" role="alert" hidden></div><div class="btns"><button type="submit">Guardar</button></div>'+
+        '<p class="hint">Cada registro guardado queda fijo: no se puede eliminar.</p></form>';
+      h+=list.length?'<ul class="entries">'+list.map(function(e){return '<li class="entry"><time>'+fmtDate(e.fecha)+'</time><span>'+esc(e.detalle)+'</span></li>'}).join('')+'</ul>':'<p class="hint">Todavía no hay registros.</p>';
+      if(blocked&&!ro)h+='<p class="hint">El descorne se registra una sola vez.</p>';
+      return h+'</section>';
+    }).join('');
+  }
+
+  function viewPeso(d,ro){
+    var f=fichaOf(d), regs=sorted(d), last=regs[0];
+    var h='<section class="card"><div class="cardhead"><h3>Control de peso</h3></div>';
+    if(last)h+='<div class="last">'+fld('Último registro',fmtDate(last.fecha))+fld('Peso',last.peso+' kg')+fld('Edad',ageTxt(last.edad,last.edadDias,true))+'</div>';
+    if(!ro){
+      if(!f.nacimiento)h+='<p class="hint">Para registrar el peso primero indica la fecha de nacimiento en la ficha técnica.</p><div><button type="button" class="ghost" data-act="goFicha">Ir a la ficha técnica</button></div>';
+      else h+='<form id="regForm" data-kind="peso" novalidate class="stack"><p class="hint">Todos los campos son obligatorios para guardar una fecha.</p>'+
+        '<div class="row3"><label for="fecha">Fecha<input id="fecha" name="fecha" type="date" max="'+today()+'" value="'+today()+'"></label>'+
+        '<label for="peso">Peso (kg)<input id="peso" name="peso" type="number" min="1" max="2000" step="0.1" inputmode="decimal"></label>'+
+        '<label for="edad">Edad (automática)<input id="edad" name="edad" type="text" readonly tabindex="-1" placeholder="Se calcula sola" value=""></label></div>'+
+        '<div id="regMsg" class="fmsg" role="alert" hidden></div><div><button type="submit">Guardar registro</button></div></form>';
+    }
+    h+='</section>';
+    var c=chart(regs); if(c)h+='<section class="card">'+c+'</section>';
+    h+='<section class="card"><h3>Historial</h3>'+(regs.length?'<div class="tablewrap"><table><thead><tr><th>Fecha</th><th>Peso</th><th>Edad</th></tr></thead><tbody>'+
+      regs.map(function(r){return '<tr><td class="n">'+fmtDate(r.fecha)+'</td><td class="n">'+r.peso+' kg</td><td class="n">'+ageTxt(r.edad,r.edadDias)+'</td></tr>'}).join('')+
+      '</tbody></table></div>':'<div class="empty">Este bovino todavía no tiene registros de peso.</div>')+'</section>';
+    return h;
+  }
+
+  function viewRepro(d,ro){
+    var f=fichaOf(d), r=reproOf(d), age=f.nacimiento?calcAge(f.nacimiento,today()):null;
+    var h='<section class="card"><div class="cardhead"><h3>Ciclo reproductivo</h3></div>';
+    if(!age||age.meses<REPRO_MESES){
+      return h+'<div class="locked">'+lockSvg()+'<div><b>Bloqueado</b><p>'+(f.nacimiento?
+        'Se habilita cuando el bovino cumpla '+REPRO_MESES+' meses, el '+fmtDate(addMonths(f.nacimiento,REPRO_MESES))+'. Edad actual: '+ageTxt(age.meses,age.dias,true)+'.':
+        'Indica la fecha de nacimiento en la ficha técnica. Se habilita cuando el bovino cumpla '+REPRO_MESES+' meses.')+'</p></div></div></section>';
+    }
+    function evForm(k){return '<form data-kind="rp" data-key="'+k+'" novalidate class="stack"><div class="row">'+
+      '<label for="rp-'+k+'-fecha">Fecha<input id="rp-'+k+'-fecha" name="fecha" type="date" max="'+today()+'" value="'+today()+'"></label>'+
+      '<label for="rp-'+k+'-peso">Peso (kg)<input id="rp-'+k+'-peso" name="peso" type="number" min="1" max="2000" step="0.1" inputmode="decimal"></label></div>'+
+      '<div class="fmsg" role="alert" hidden></div><div class="btns"><button type="submit">Guardar</button></div><p class="hint">La edad se calcula sola y el registro no se puede eliminar.</p></form>'}
+    function evRow(e){return '<li class="entry"><time>'+fmtDate(e.fecha)+'</time><span>'+ageTxt(e.edad,e.edadDias,true)+' · '+e.peso+' kg</span></li>'}
+    function item(k,t,btn){
+      var e=r[k], open=!ro&&state.open==='rp-'+k;
+      return '<div class="rpitem"><div class="cardhead"><h4>'+t+'</h4>'+((ro||e)?'':'<button type="button" class="ghost sm" data-act="open" data-key="rp-'+k+'">'+(open?'Cerrar':btn)+'</button>')+'</div>'+
+        (open&&!e?evForm(k):'')+(e?'<ul class="entries">'+evRow(e)+'</ul>':'<p class="hint">Sin registrar.</p>')+'</div>';
+    }
+    var po=!ro&&state.open==='rp-parto';
+    var partos='<div class="rpitem"><div class="cardhead"><h4>Partos</h4>'+(ro?'':'<button type="button" class="ghost sm" data-act="open" data-key="rp-parto">'+(po?'Cerrar':'+ Registrar parto')+'</button>')+'</div>'+
+      (po?evForm('parto'):'')+(r.partos.length?'<ul class="entries">'+r.partos.slice().sort(byDateDesc).map(evRow).join('')+'</ul>':'<p class="hint">Sin partos registrados.</p>')+'</div>';
+    var dias=ro?'':'<form data-kind="dias" novalidate class="stack"><label for="rp-dias"># Días abiertos<input id="rp-dias" name="dias" type="number" min="0" max="3000" step="1" inputmode="numeric" value="'+esc(r.dias)+'"></label>'+
+      '<div class="fmsg" role="alert" hidden></div><div class="btns"><button type="submit" class="ghost">Guardar días abiertos</button></div></form>';
+    return h+'<div class="last">'+fld('# Partos',String(r.partos.length))+fld('# Días abiertos',r.dias===''?'':esc(r.dias))+'</div>'+
+      '<div class="rpgrid">'+item('celo','Edad / peso: 1.er celo','+ Registrar')+item('servicio','Edad / peso: 1.er servicio','+ Registrar')+partos+'</div>'+dias+'</section>';
+  }
+
+
   /* ---------- Almacenamiento (Firestore, por cuenta) ---------- */
-  function publish(a){return setDoc(doc(dbf,'publico',a.id),{uid:uid,nombre:a.nombre,registros:a.registros||[],actualizado:Date.now()})}
+  function publish(a){return setDoc(doc(dbf,'publico',a.id),{uid:uid,nombre:a.nombre,nacimiento:a.nacimiento||'',ficha:a.ficha||null,sanitario:a.sanitario||{},repro:a.repro||{},registros:a.registros||[],actualizado:Date.now()})}
   function saveAnimal(a){
     return setDoc(doc(dbf,'usuarios',uid,'animales',a.id),a).then(function(){
       synced[a.id]=1;
@@ -1791,7 +1929,7 @@ const dbf = getFirestore(app);
     var n=state.animals.length, pesos=[], sin=0;
     state.animals.forEach(function(a){var r=sorted(a)[0];if(r)pesos.push(r.peso);else sin++});
     var prom=pesos.length?(pesos.reduce(function(s,x){return s+x},0)/pesos.length):0;
-    $('stats').innerHTML='<div class="stat"><b>'+n+'</b><span>Animales</span></div>'+
+    $('stats').innerHTML='<div class="stat"><b>'+n+'</b><span>Bovinos</span></div>'+
       '<div class="stat"><b>'+(pesos.length?prom.toFixed(1)+' kg':'-')+'</b><span>Peso promedio</span></div>'+
       '<div class="stat"><b>'+sin+'</b><span>Sin registros</span></div>';
   }
@@ -1799,13 +1937,13 @@ const dbf = getFirestore(app);
   function renderList(){
     var q=state.q.trim().toLowerCase();
     var items=state.animals.slice().sort(byName).filter(function(a){
-      if(!q)return true;var r=sorted(a)[0];
-      return a.nombre.toLowerCase().indexOf(q)>=0||(r&&r.raza.toLowerCase().indexOf(q)>=0)});
-    if(!items.length){$('lista').innerHTML='<div class="empty">'+(state.animals.length?'Ningún animal coincide con la búsqueda.':(state.loaded?'Aún no hay animales. Indica un nombre y una cantidad, y pulsa Agregar animales.':'Cargando...'))+'</div>';return}
+      if(!q)return true;var raza=fichaOf(a).raza||'';
+      return a.nombre.toLowerCase().indexOf(q)>=0||raza.toLowerCase().indexOf(q)>=0});
+    if(!items.length){$('lista').innerHTML='<div class="empty">'+(state.animals.length?'Ningún bovino coincide con la búsqueda.':(state.loaded?'Aún no hay bovinos. Escribe un nombre y pulsa Agregar bovino.':'Cargando...'))+'</div>';return}
     $('lista').innerHTML=items.map(function(a){
-      var r=sorted(a)[0];
+      var r=sorted(a)[0], raza=fichaOf(a).raza;
       return '<button type="button" class="animal" data-id="'+esc(a.id)+'" aria-current="'+(a.id===state.sel)+'">'+
-        '<span>'+esc(a.nombre)+'<small>'+(r?esc(r.raza)+' · '+r.peso+' kg':'Sin registros')+'</small></span>'+
+        '<span>'+esc(a.nombre)+'<small>'+(raza||r?[raza,r?r.peso+' kg':''].filter(Boolean).map(esc).join(' · '):'Ficha sin completar')+'</small></span>'+
         '<span class="pill '+(r?'ok':'')+'">'+(r?fmtDate(r.fecha):'Pendiente')+'</span></button>';
     }).join('');
   }
@@ -1826,8 +1964,8 @@ const dbf = getFirestore(app);
 
   function updAge(){
     var form=document.getElementById('regForm');if(!form)return;
-    var a=state.animals.find(function(x){return x.id===form.dataset.id});if(!a)return;
-    var nac=a.nacimiento||(form.elements.nacimiento?form.elements.nacimiento.value:''),fe=form.elements.fecha.value,out='';
+    var a=state.animals.find(function(x){return x.id===state.sel});if(!a)return;
+    var nac=fichaOf(a).nacimiento,fe=form.elements.fecha.value,out='';
     if(nac&&fe){var r=calcAge(nac,fe);out=r?ageTxt(r.meses,r.dias,true):'Fecha anterior al nacimiento'}
     form.elements.edad.value=out;
   }
@@ -1835,67 +1973,54 @@ const dbf = getFirestore(app);
   function renderFicha(){
     var a=state.animals.find(function(x){return x.id===state.sel});
     var f=$('ficha');
-    if(!a){f.innerHTML='<div class="empty"><h2>Selecciona un animal</h2><p>Aquí verás su ficha, el historial de registros y el formulario para agregar uno nuevo.</p></div>';return}
-    var regs=sorted(a), last=regs[0];
-    var prevForm=document.getElementById('regForm');
+    if(!a){delete f.dataset.sel;f._html=null;f.innerHTML='<div class="empty"><h2>Selecciona un bovino</h2><p>Aquí verás su ficha técnica, el control sanitario, el peso y el ciclo reproductivo.</p></div>';return}
+    /* conserva lo que la persona estaba escribiendo si la pantalla se redibuja */
     var keep={};
-    if(prevForm&&prevForm.dataset.id===a.id){['fecha','peso','nacimiento','raza','vitaminas','vacunas','descorne'].forEach(function(k){if(prevForm.elements[k])keep[k]=prevForm.elements[k].value})}
-    var v=function(k,def){return keep[k]!==undefined&&keep[k]!==''?keep[k]:def};
-    var html='<div class="head"><div class="idrow"><div class="qrbox" title="Código QR de la ficha pública">'+qrFor(a.id)+'</div><div><h2>'+esc(a.nombre)+'</h2><p class="hint">'+regs.length+' registro'+(regs.length===1?'':'s')+(a.nacimiento?' · Nació el '+fmtDate(a.nacimiento):'')+'</p><div class="qrbtns"><button type="button" class="ghost sm" id="qrDl">Descargar QR</button><button type="button" class="ghost sm" id="qrPrint">Imprimir etiqueta</button><button type="button" class="ghost sm" id="qrCopy">Copiar enlace</button></div></div></div>'+
-      '<div id="delArea"><button type="button" class="danger" id="delBtn">Eliminar animal</button></div></div>';
+    if(f.dataset.sel===a.id&&f.dataset.tab===state.tab)f.querySelectorAll('input[id],textarea[id],select[id]').forEach(function(el){keep[el.id]=el.value});
+    var fi=fichaOf(a), age=fi.nacimiento?calcAge(fi.nacimiento,today()):null;
+    var editing=!fichaDone(fi)||state.edit===a.id;
+    var html='<div class="head"><div class="idrow"><div class="qrbox" title="Código QR de la ficha pública">'+qrFor(a.id)+'</div><div><h2>'+esc(a.nombre)+'</h2><p class="hint">'+(age?'Nació el '+fmtDate(fi.nacimiento)+' · '+ageTxt(age.meses,age.dias,true):'Ficha técnica sin completar')+'</p><div class="qrbtns"><button type="button" class="ghost sm" id="qrDl">Descargar QR</button><button type="button" class="ghost sm" id="qrPrint">Imprimir etiqueta</button><button type="button" class="ghost sm" id="qrCopy">Copiar enlace</button></div></div></div>'+
+      '<div id="delArea"><button type="button" class="danger" id="delBtn">Eliminar bovino</button></div></div>';
     if(pubFail)html+='<p class="msg">La ficha pública no se pudo publicar, así que el QR todavía no abrirá la tabla. Revisa las reglas de Firestore (colección publico).</p>';
-    if(last){html+='<div class="last"><div><span>Último registro</span><b>'+fmtDate(last.fecha)+'</b></div><div><span>Peso</span><b>'+last.peso+' kg</b></div><div><span>Edad</span><b>'+ageTxt(last.edad,last.edadDias,true)+'</b></div><div><span>Raza</span><b>'+esc(last.raza)+'</b></div><div><span>Descorne</span><b>'+esc(last.descorne)+'</b></div></div>'}
-    html+='<form id="regForm" data-id="'+esc(a.id)+'" novalidate style="display:flex;flex-direction:column;gap:12px">'+
-      '<h3>Nuevo registro</h3><p class="hint">Todos los campos son obligatorios para guardar una fecha.</p>'+
-      '<div class="row3"><label for="fecha">Fecha<input id="fecha" name="fecha" type="date" max="'+today()+'" value="'+v('fecha',today())+'"></label>'+
-      '<label for="peso">Peso (kg)<input id="peso" name="peso" type="number" min="1" max="2000" step="0.1" inputmode="decimal" value="'+esc(v('peso',''))+'"></label>'+
-      '<label for="edad">Edad (automática)<input id="edad" name="edad" type="text" readonly tabindex="-1" placeholder="Se calcula sola" value=""></label></div>'+
-      (a.nacimiento?'':'<div class="row"><label for="nacimiento">Fecha de nacimiento (solo se pide una vez)<input id="nacimiento" name="nacimiento" type="date" max="'+today()+'" value="'+esc(v('nacimiento',''))+'"></label></div>')+
-      '<div class="row"><label for="raza">Raza<input id="raza" name="raza" placeholder="Ej. Brahman, Holstein" value="'+esc(v('raza',last?last.raza:''))+'"></label>'+
-      '<label for="descorne">Descorne<select id="descorne" name="descorne"><option value="">Elegir...</option><option'+(v('descorne','')==='Realizado'?' selected':'')+'>Realizado</option><option'+(v('descorne','')==='No realizado'?' selected':'')+'>No realizado</option></select></label></div>'+
-      '<div class="row"><label for="vitaminas">Vitaminas suministradas<textarea id="vitaminas" name="vitaminas" placeholder="Producto y dosis">'+esc(v('vitaminas',''))+'</textarea></label>'+
-      '<label for="vacunas">Vacunas<textarea id="vacunas" name="vacunas" placeholder="Ej. Aftosa, brucelosis">'+esc(v('vacunas',''))+'</textarea></label></div>'+
-      '<div id="regMsg" role="alert" hidden></div><div><button type="submit">Guardar registro</button></div></form>'+
-      chart(regs)+
-      '<div><h3>Historial</h3>'+(regs.length?'<div class="tablewrap"><table><thead><tr><th>Fecha</th><th>Peso</th><th>Edad</th><th>Raza</th><th>Vitaminas</th><th>Vacunas</th><th>Descorne</th></tr></thead><tbody>'+
-      regs.map(function(r){return '<tr><td class="n">'+fmtDate(r.fecha)+'</td><td class="n">'+r.peso+' kg</td><td class="n">'+ageTxt(r.edad,r.edadDias)+'</td><td>'+esc(r.raza)+'</td><td>'+esc(r.vitaminas)+'</td><td>'+esc(r.vacunas)+'</td><td>'+esc(r.descorne)+'</td></tr>'}).join('')+
-      '</tbody></table></div>':'<div class="empty">Este animal todavía no tiene registros.</div>')+'</div>';
+    html+='<nav class="mods" role="tablist" aria-label="Módulos del bovino">'+[['ficha','Ficha técnica'],['sanitario','Sanitario'],['peso','Peso y reproducción']].map(function(t){
+      return '<button type="button" role="tab" data-tab="'+t[0]+'" aria-selected="'+(state.tab===t[0])+'">'+t[1]+'</button>'}).join('')+'</nav>';
+    var body=state.flash?'<p class="msg'+(state.flash.ok?' ok':'')+'">'+esc(state.flash.t)+'</p>':'';
+    state.flash=null;
+    if(state.tab==='ficha')body+=viewFicha(a,false,editing);
+    else if(state.tab==='sanitario')body+=viewSan(a,false);
+    else body+=viewPeso(a,false)+viewRepro(a,false);
+    html+='<div class="modbody">'+body+'</div>';
+    /* si Firestore avisa de un cambio que no modifica lo que se ve, no se redibuja (así no se pierde un clic ni lo escrito) */
+    if(f._html===html&&f.dataset.sel===a.id&&f.dataset.tab===state.tab)return;
+    f._html=html;
     f.innerHTML=html;
+    f.dataset.sel=a.id;f.dataset.tab=state.tab;
+    Object.keys(keep).forEach(function(id){var el=document.getElementById(id);if(el&&!el.readOnly)el.value=keep[id]});
     updAge();
+    if(state.focus){state.focus=false;var first=f.querySelector('.modbody form input:not([readonly]),.modbody form select');if(first)first.focus()}
   }
 
   function render(){renderStats();renderList();renderFicha();
     $('store').textContent = 'Datos guardados en tu cuenta.';ensurePublic();}
 
   /* ---------- Eventos ---------- */
-  $('nacimientoAlta').max=today();
+  function selectAnimal(id){state.sel=id;state.tab='ficha';state.open=null;state.edit=null;state.flash=null;render()}
   $('buscar').addEventListener('input',function(e){state.q=e.target.value;renderList()});
-  $('lista').addEventListener('click',function(e){var b=e.target.closest('.animal');if(!b)return;state.sel=b.dataset.id;render()});
+  $('lista').addEventListener('click',function(e){var b=e.target.closest('.animal');if(!b)return;selectAnimal(b.dataset.id)});
 
   $('addForm').addEventListener('submit',function(e){
     e.preventDefault();
-    var pre=$('prefijo').value.trim()||'Animal', n=parseInt($('cantidad').value,10), msg=$('addMsg');
-    if(!(n>=1&&n<=200)){msg.className='msg';msg.textContent='La cantidad debe estar entre 1 y 200.';msg.hidden=false;return}
-    var nac=$('nacimientoAlta').value;
-    $('nacimientoAlta').classList.remove('bad');
-    if(!nac||nac>today()){$('nacimientoAlta').classList.add('bad');msg.className='msg';msg.textContent=nac?'La fecha de nacimiento no puede ser futura.':'Indica la fecha de nacimiento del animal.';msg.hidden=false;$('nacimientoAlta').focus();return}
-    var base=state.animals.map(function(a){return a.nombre});
-    var created=[],i=0,k=0;
-    var names=[];
-    if(n===1&&base.indexOf(pre)<0){names.push(pre)}
-    else{
-      var re=new RegExp('^'+pre.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'-(\\d+)$'),max=0;
-      base.forEach(function(s){var m=re.exec(s);if(m)max=Math.max(max,parseInt(m[1],10))});
-      for(k=1;k<=n;k++)names.push(pre+'-'+String(max+k).padStart(3,'0'));
-    }
+    var nm=$('prefijo').value.trim(), msg=$('addMsg');
+    if(!nm){msg.className='msg';msg.textContent='Escribe el nombre del bovino.';msg.hidden=false;$('prefijo').focus();return}
+    if(state.animals.some(function(x){return x.nombre.toLowerCase()===nm.toLowerCase()})){msg.className='msg';msg.textContent='Ya existe un bovino con ese nombre.';msg.hidden=false;return}
     $('addBtn').disabled=true;
-    var chain=Promise.resolve();
-    names.forEach(function(nm){chain=chain.then(function(){var a={id:newId(),nombre:nm,nacimiento:nac,creado:Date.now(),registros:[]};created.push(a);return saveAnimal(a)})});
-    chain.then(function(){
-      state.sel=created[0].id;
-      msg.className='msg ok';msg.textContent=n+(n===1?' animal agregado.':' animales agregados.');msg.hidden=false;
-      $('prefijo').value='';$('cantidad').value='1';$('nacimientoAlta').value='';
-      if(mode==='db')render();
+    var a={id:newId(),nombre:nm,creado:Date.now(),ficha:null,sanitario:{},repro:{},registros:[]};
+    saveAnimal(a).then(function(){
+      if(!state.animals.some(function(x){return x.id===a.id}))state.animals.push(a);
+      state.sel=a.id;state.tab='ficha';state.open=null;state.edit=null;
+      msg.className='msg ok';msg.textContent=nm+' agregado. Completa su ficha técnica.';msg.hidden=false;
+      $('prefijo').value='';
+      render();
     }).catch(function(err){msg.className='msg';msg.textContent='No se pudo guardar'+(err&&err.code==='quota_exceeded'?': se alcanzó el límite de almacenamiento.':'. Intenta de nuevo.');msg.hidden=false})
     .then(function(){$('addBtn').disabled=false});
   });
@@ -1910,35 +2035,115 @@ const dbf = getFirestore(app);
       return;
     }
     if(e.target.id==='delBtn'){
-      $('delArea').innerHTML='<span class="hint">¿Eliminar este animal y todo su historial?</span> <button type="button" class="danger" id="delYes">Sí, eliminar</button> <button type="button" class="ghost" id="delNo">Cancelar</button>';
-    }else if(e.target.id==='delNo'){renderFicha()}
-    else if(e.target.id==='delYes'){var id=state.sel;state.sel=null;removeAnimal(id).then(function(){render()})}
+      $('delArea').innerHTML='<span class="hint">¿Eliminar este bovino y todo su historial?</span> <button type="button" class="danger" id="delYes">Sí, eliminar</button> <button type="button" class="ghost" id="delNo">Cancelar</button>';
+      return;
+    }
+    if(e.target.id==='delNo'){delete $('ficha').dataset.sel;renderFicha();return}
+    if(e.target.id==='delYes'){var id=state.sel;state.sel=null;removeAnimal(id).then(function(){render()});return}
+    var tb=e.target.closest('.mods button[data-tab]');
+    if(tb){state.tab=tb.dataset.tab;state.open=null;state.flash=null;renderFicha();return}
+    var ac=e.target.closest('[data-act]');
+    if(!ac||!qa)return;
+    var act=ac.dataset.act;
+    if(act==='open'){state.open=state.open===ac.dataset.key?null:ac.dataset.key;state.focus=!!state.open;renderFicha()}
+    else if(act==='editFicha'){state.edit=qa.id;state.focus=true;renderFicha()}
+    else if(act==='cancelFicha'){state.edit=null;delete $('ficha').dataset.sel;renderFicha()}
+    else if(act==='goFicha'){state.tab='ficha';state.focus=true;renderFicha()}
   });
 
-  $('ficha').addEventListener('input',function(e){if(e.target.id==='fecha'||e.target.id==='nacimiento')updAge()});
+  $('ficha').addEventListener('input',function(e){if(e.target.id==='fecha')updAge()});
+
+  /* guarda un cambio del bovino; limpia lo escrito y muestra el aviso en la pantalla siguiente */
+  function commit(a,upd,okText,box){
+    delete $('ficha').dataset.sel;
+    var btn=box&&box.querySelector('button[type=submit]');if(btn)btn.disabled=true;
+    return saveAnimal(upd).then(function(){
+      var i=state.animals.findIndex(function(x){return x.id===a.id});if(i>=0)state.animals[i]=upd;
+      state.open=null;state.edit=null;state.flash={ok:true,t:okText};render();
+    }).catch(function(){
+      state.flash={ok:false,t:'No se pudo guardar. Intenta de nuevo.'};render();
+    });
+  }
+  function fail(form,text,field){
+    var m=form.querySelector('.fmsg');m.textContent=text;m.hidden=false;
+    if(field){field.classList.add('bad');field.focus()}
+  }
+  function clearBad(form){form.querySelectorAll('.bad').forEach(function(x){x.classList.remove('bad')})}
+  function ageAt(nac,fecha){var r=calcAge(nac,fecha);return r?{edad:r.meses,edadDias:r.dias}:null}
 
   $('ficha').addEventListener('submit',function(e){
-    if(e.target.id!=='regForm')return;
+    var form=e.target, kind=form.dataset.kind; if(!kind)return;
     e.preventDefault();
-    var form=e.target, a=state.animals.find(function(x){return x.id===state.sel}); if(!a)return;
-    var needNac=!a.nacimiento;
-    var keys=(needNac?['nacimiento']:[]).concat(['fecha','peso','raza','vitaminas','vacunas','descorne']), names={nacimiento:'fecha de nacimiento',fecha:'fecha',peso:'peso',raza:'raza',vitaminas:'vitaminas',vacunas:'vacunas',descorne:'descorne'};
-    var missing=[],val={};
-    keys.forEach(function(k){var el=form.elements[k],s=String(el.value).trim();el.classList.remove('bad');
-      var bad=!s||((k==='peso')&&!(parseFloat(s)>0))||((k==='nacimiento')&&s>today())||((k==='fecha')&&s>today());
-      if(bad){el.classList.add('bad');missing.push(names[k])}val[k]=s});
-    var msg=$('regMsg');
-    if(missing.length){msg.className='msg';msg.textContent='Completa todos los campos para guardar el registro. Falta revisar: '+missing.join(', ')+'.';msg.hidden=false;form.elements[keys.filter(function(k){return form.elements[k].classList.contains('bad')})[0]].focus();return}
-    var nac=a.nacimiento||val.nacimiento, age=calcAge(nac,val.fecha);
-    if(!age){form.elements.fecha.classList.add('bad');msg.className='msg';msg.textContent='La fecha del registro no puede ser anterior a la fecha de nacimiento ('+fmtDate(nac)+').';msg.hidden=false;form.elements.fecha.focus();return}
-    var reg={id:newId(),creado:Date.now(),fecha:val.fecha,peso:parseFloat(val.peso),edad:age.meses,edadDias:age.dias,raza:val.raza,vitaminas:val.vitaminas,vacunas:val.vacunas,descorne:val.descorne};
-    var upd=Object.assign({},a,{nacimiento:nac,registros:(a.registros||[]).concat([reg])});
-    var btn=form.querySelector('button[type=submit]');btn.disabled=true;
-    saveAnimal(upd).then(function(){
-      if(mode==='db'){var i=state.animals.findIndex(function(x){return x.id===a.id});if(i>=0)state.animals[i]=upd}
-      var f2=document.getElementById('regForm');if(f2)delete f2.dataset.id;
-      render();var m=$('regMsg');m.className='msg ok';m.textContent='Registro del '+fmtDate(reg.fecha)+' guardado.';m.hidden=false;
-    }).catch(function(){msg.className='msg';msg.textContent='No se pudo guardar el registro. Intenta de nuevo.';msg.hidden=false;btn.disabled=false});
+    var a=state.animals.find(function(x){return x.id===state.sel}); if(!a)return;
+    var el=function(n){return form.elements[n]}, val=function(n){return String(el(n).value).trim()};
+    clearBad(form);var mb=form.querySelector('.fmsg');if(mb)mb.hidden=true;
+    var fi=fichaOf(a), nac=fi.nacimiento;
+
+    if(kind==='ficha'){
+      var nuevo={madre:val('madre'),padre:val('padre'),sexo:val('sexo'),nacimiento:val('nacimiento'),raza:val('raza'),pesoNac:val('pesoNac')}, nombre=val('nombre');
+      var bad=[];
+      if(!nombre)bad.push('nombre');if(!nuevo.sexo)bad.push('sexo');if(!nuevo.raza)bad.push('raza');
+      if(!nuevo.nacimiento||nuevo.nacimiento>today())bad.push('nacimiento');
+      if(!(parseFloat(nuevo.pesoNac)>0))bad.push('pesoNac');
+      if(bad.length){bad.forEach(function(n){el(n).classList.add('bad')});var lab={nombre:'nombre de la cría',sexo:'sexo',raza:'raza',nacimiento:'fecha de nacimiento',pesoNac:'peso al nacimiento'};
+        fail(form,'Revisa: '+bad.map(function(n){return lab[n]}).join(', ')+'.',el(bad[0]));return}
+      if(state.animals.some(function(x){return x.id!==a.id&&x.nombre.toLowerCase()===nombre.toLowerCase()})){fail(form,'Ya existe otro bovino con ese nombre.',el('nombre'));return}
+      nuevo.pesoNac=parseFloat(nuevo.pesoNac);
+      var r0=reproOf(a), regs=(a.registros||[]), problem=false;
+      var fechas=regs.map(function(r){return r.fecha}).concat(r0.celo?[r0.celo.fecha]:[],r0.servicio?[r0.servicio.fecha]:[],r0.partos.map(function(p){return p.fecha}));
+      fechas.forEach(function(x){if(x<nuevo.nacimiento)problem=true});
+      if(problem){fail(form,'Hay registros anteriores a esa fecha de nacimiento. Revisa la fecha.',el('nacimiento'));return}
+      var re=function(o){var g=ageAt(nuevo.nacimiento,o.fecha);return Object.assign({},o,g)};
+      var upd=Object.assign({},a,{nombre:nombre,ficha:nuevo,nacimiento:nuevo.nacimiento,registros:regs.map(re),
+        repro:{celo:r0.celo?re(r0.celo):null,servicio:r0.servicio?re(r0.servicio):null,partos:r0.partos.map(re),dias:r0.dias===''?null:r0.dias}});
+      commit(a,upd,'Ficha técnica guardada.',form);return;
+    }
+
+    if(kind==='san'){
+      var c=SAN.filter(function(x){return x.k===form.dataset.key})[0]; if(!c)return;
+      var fe=val('fecha'), det=val('detalle'), faltan=[];
+      if(!fe||fe>today()){faltan.push('fecha');el('fecha').classList.add('bad')}
+      if(!det){faltan.push(c.l.toLowerCase());el('detalle').classList.add('bad')}
+      if(faltan.length){fail(form,'Completa todos los campos. Falta revisar: '+faltan.join(', ')+'.',form.querySelector('.bad'));return}
+      if(c.once&&sanList(a,c.k).length){fail(form,'El descorne se registra una sola vez.');return}
+      var san=Object.assign({},a.sanitario||{});
+      san[c.k]=(san[c.k]||[]).concat([{id:newId(),creado:Date.now(),fecha:fe,detalle:det}]);
+      commit(a,Object.assign({},a,{sanitario:san}),c.t+': registro guardado.',form);return;
+    }
+
+    if(kind==='peso'){
+      var fp=val('fecha'), pe=val('peso'), miss=[];
+      if(!fp||fp>today()){miss.push('fecha');el('fecha').classList.add('bad')}
+      if(!(parseFloat(pe)>0)){miss.push('peso');el('peso').classList.add('bad')}
+      if(miss.length){fail(form,'Completa todos los campos para guardar el registro. Falta revisar: '+miss.join(', ')+'.',form.querySelector('.bad'));return}
+      var ag=ageAt(nac,fp);
+      if(!ag){fail(form,'La fecha del registro no puede ser anterior a la fecha de nacimiento ('+fmtDate(nac)+').',el('fecha'));return}
+      var reg=Object.assign({id:newId(),creado:Date.now(),fecha:fp,peso:parseFloat(pe)},ag);
+      commit(a,Object.assign({},a,{registros:(a.registros||[]).concat([reg])}),'Registro del '+fmtDate(fp)+' guardado.',form);return;
+    }
+
+    if(kind==='rp'){
+      var k=form.dataset.key, rp=reproOf(a), fr=val('fecha'), pr=val('peso'), m2=[];
+      var ag0=nac?calcAge(nac,today()):null;
+      if(!ag0||ag0.meses<REPRO_MESES){fail(form,'El ciclo reproductivo se habilita a los '+REPRO_MESES+' meses.');return}
+      if(!fr||fr>today()){m2.push('fecha');el('fecha').classList.add('bad')}
+      if(!(parseFloat(pr)>0)){m2.push('peso');el('peso').classList.add('bad')}
+      if(m2.length){fail(form,'Completa todos los campos. Falta revisar: '+m2.join(', ')+'.',form.querySelector('.bad'));return}
+      var ag2=ageAt(nac,fr);
+      if(!ag2){fail(form,'La fecha no puede ser anterior a la fecha de nacimiento ('+fmtDate(nac)+').',el('fecha'));return}
+      var ev=Object.assign({id:newId(),creado:Date.now(),fecha:fr,peso:parseFloat(pr)},ag2);
+      var nr={celo:rp.celo,servicio:rp.servicio,partos:rp.partos,dias:rp.dias===''?null:rp.dias};
+      if(k==='parto')nr.partos=rp.partos.concat([ev]);
+      else if(rp[k]){fail(form,'Este registro se hace una sola vez.');return}
+      else nr[k]=ev;
+      commit(a,Object.assign({},a,{repro:nr}),'Registro guardado.',form);return;
+    }
+
+    if(kind==='dias'){
+      var dv=val('dias'), rq=reproOf(a);
+      if(dv===''||!(parseInt(dv,10)>=0)){fail(form,'Escribe un número de días (0 o más).',el('dias'));return}
+      commit(a,Object.assign({},a,{repro:{celo:rq.celo,servicio:rq.servicio,partos:rq.partos,dias:parseInt(dv,10)}}),'Días abiertos guardados.',form);return;
+    }
   });
 
   /* ---------- Arranque y sesión ---------- */
@@ -2047,13 +2252,9 @@ const dbf = getFirestore(app);
     img.src=u;
   }
   function renderPub(d){
-    var regs=sorted({registros:d.registros||[]}), last=regs[0];
-    var h='<div class="head"><div><h2>'+esc(d.nombre||'Animal')+'</h2><p class="hint">Ficha de solo lectura · '+regs.length+' registro'+(regs.length===1?'':'s')+(d.actualizado?' · actualizada el '+new Date(d.actualizado).toLocaleDateString('es'):'')+'</p></div></div>';
-    if(last)h+='<div class="last"><div><span>Último registro</span><b>'+fmtDate(last.fecha)+'</b></div><div><span>Peso</span><b>'+last.peso+' kg</b></div><div><span>Edad</span><b>'+ageTxt(last.edad,last.edadDias,true)+'</b></div><div><span>Raza</span><b>'+esc(last.raza)+'</b></div><div><span>Descorne</span><b>'+esc(last.descorne)+'</b></div></div>';
-    h+=chart(regs);
-    h+='<div><h3>Historial</h3>'+(regs.length?'<div class="tablewrap"><table><thead><tr><th>Fecha</th><th>Peso</th><th>Edad</th><th>Raza</th><th>Vitaminas</th><th>Vacunas</th><th>Descorne</th></tr></thead><tbody>'+
-      regs.map(function(r){return '<tr><td class="n">'+fmtDate(r.fecha)+'</td><td class="n">'+r.peso+' kg</td><td class="n">'+ageTxt(r.edad,r.edadDias)+'</td><td>'+esc(r.raza)+'</td><td>'+esc(r.vitaminas)+'</td><td>'+esc(r.vacunas)+'</td><td>'+esc(r.descorne)+'</td></tr>'}).join('')+
-      '</tbody></table></div>':'<div class="empty">Este animal todavía no tiene registros.</div>')+'</div>';
+    var regs=sorted({registros:d.registros||[]});
+    var h='<div class="head"><div><h2>'+esc(d.nombre||'Bovino')+'</h2><p class="hint">Ficha de solo lectura'+(d.actualizado?' · actualizada el '+new Date(d.actualizado).toLocaleDateString('es'):'')+'</p></div></div>';
+    h+='<div class="modbody">'+viewFicha(d,true,false)+viewSan(d,true)+viewPeso(d,true)+viewRepro(d,true)+'</div>';
     $('pubFicha').innerHTML=h;
   }
   function loadPub(id){
@@ -2062,7 +2263,7 @@ const dbf = getFirestore(app);
     pubShown=id;
     $('pubFicha').innerHTML='<div class="empty">Cargando ficha...</div>';
     getDoc(doc(dbf,'publico',id)).then(function(s){
-      if(!s.exists()){$('pubFicha').innerHTML='<div class="empty"><h2>Ficha no encontrada</h2><p>El animal pudo haber sido eliminado o su ficha todavía no se ha publicado.</p></div>';return}
+      if(!s.exists()){$('pubFicha').innerHTML='<div class="empty"><h2>Ficha no encontrada</h2><p>El bovino pudo haber sido eliminado o su ficha todavía no se ha publicado.</p></div>';return}
       renderPub(s.data());
     }).catch(function(){pubShown=null;$('pubFicha').innerHTML='<div class="empty"><h2>No se pudo cargar la ficha</h2><p>Revisa tu conexión e intenta de nuevo.</p></div>'});
   }
@@ -2083,7 +2284,7 @@ const dbf = getFirestore(app);
 
   onAuthStateChanged(auth,function(user){
     if(unsub){unsub();unsub=null}
-    state.animals=[];state.sel=null;state.loaded=false;state.q='';$('buscar').value='';synced={};pubFail=false;
+    state.animals=[];state.sel=null;state.loaded=false;state.q='';state.tab='ficha';state.open=null;state.edit=null;state.flash=null;$('buscar').value='';synced={};pubFail=false;
     curUser=user;authReady=true;
     if(!user){uid=null;setTab(false)}else{uid=user.uid;startData()}
     applyView();
